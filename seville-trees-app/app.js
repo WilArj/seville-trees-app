@@ -1046,4 +1046,17 @@ document.addEventListener('DOMContentLoaded', () => {
     enterModeDistrict(); // Cargar modo distritos por defecto al arrancar
     loadSingularTrees(); // Cargar árboles singulares del CSV
     loadCensusDataBackground(); // Cargar censo de Sevilla en segundo plano
+
+    // Lógica para colapsar el menú lateral
+    const toggleBtn = document.getElementById('toggle-sidebar-btn');
+    const sidebar = document.getElementById('sidebar');
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            // Recalcular tamaño del mapa tras la animación (0.3s)
+            setTimeout(() => {
+                if (map) map.invalidateSize();
+            }, 300);
+        });
+    }
 });

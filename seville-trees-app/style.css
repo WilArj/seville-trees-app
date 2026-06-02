@@ -40,7 +40,45 @@ body {
     flex-direction: column;
     padding: 2rem;
     border-right: 1px solid var(--border);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.collapsed {
+    transform: translateX(-100%);
+}
+
+.toggle-sidebar-btn {
+    position: absolute;
+    top: 2rem;
+    right: -40px;
+    width: 40px;
+    height: 48px;
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 4px 0 10px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+.toggle-sidebar-btn:hover {
+    background: rgba(34, 139, 34, 0.2);
+    color: white;
+}
+
+.toggle-sidebar-btn svg {
     transition: transform 0.3s ease;
+}
+
+.sidebar.collapsed .toggle-sidebar-btn svg {
+    transform: rotate(180deg);
 }
 
 .glass {
@@ -366,7 +404,6 @@ input:checked + .slider:before {
 .trees-list {
     overflow-y: auto;
     flex-grow: 1;
-    max-height: calc(100vh - 500px); /* fallback if flex gets weird */
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
