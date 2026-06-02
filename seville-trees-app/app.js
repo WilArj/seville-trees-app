@@ -880,15 +880,20 @@ function setupEvents() {
             btnIdSearch.textContent = '...';
             
             try {
-                const response = await fetch(`/api/tree?idx=${idxStr}`);
-                if (!response.ok) {
+                if (!censusData) {
+                    alert("La base de datos global aún se está cargando en segundo plano. Por favor, inténtalo de nuevo en un par de segundos.");
+                    return;
+                }
+                
+                const targetIdx = parseInt(idxStr, 10);
+                const tree = censusData.find(t => t.idx === targetIdx);
+                
+                if (!tree) {
                     alert("No se encontró ningún árbol con ese identificador.");
                     return;
                 }
                 
-                const data = await response.json();
-                if (data.status === 'success' && data.tree) {
-                    const tree = data.tree;
+                if (tree) {
                     
                     // Asegurarnos de que el mapa está en modo distrito o global (si es distrito, cargarlo si no lo está)
                     if (currentMode === 'district' && tree.distrito) {
