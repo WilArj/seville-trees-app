@@ -54,6 +54,7 @@ body.sidebar-collapsed .sidebar {
     overflow-y: auto;
     overflow-x: hidden;
     padding: 2rem;
+    -webkit-overflow-scrolling: touch; /* Force smooth touch scrolling on mobile */
 }
 
 /* Custom Scrollbar for sidebar to make it sleek */
@@ -427,8 +428,8 @@ input:checked + .slider:before {
 /* Trees List */
 .trees-list-container {
     margin-top: 1rem;
-    min-height: 450px; /* Force at least 10 trees to be visible */
-    flex-grow: 1;
+    height: 450px; /* Strictly limit to ~10 trees */
+    flex-grow: 0; /* Do not expand to fill large screens */
     flex-shrink: 0; /* Prevent shrinking below the min-height */
     display: flex;
     flex-direction: column;
@@ -436,6 +437,7 @@ input:checked + .slider:before {
 
 .trees-list {
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Force smooth touch scrolling */
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -659,7 +661,7 @@ input:checked + .slider:before {
     }
     
     .trees-list-container {
-        min-height: 400px; /* Slightly smaller min-height for mobile */
+        height: 400px; /* Strictly limit to ~8 trees for mobile */
     }
 
     .toggle-sidebar-btn {
