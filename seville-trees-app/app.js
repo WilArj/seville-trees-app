@@ -1058,4 +1058,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 300);
         });
     }
+
+    // Lógica del modal "Acerca de"
+    const aboutBtn = document.getElementById('about-btn');
+    const aboutModal = document.getElementById('about-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+
+    if (aboutBtn && aboutModal && closeModalBtn) {
+        aboutBtn.addEventListener('click', () => {
+            aboutModal.classList.remove('hidden');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            aboutModal.classList.add('hidden');
+        });
+
+        // Cerrar al hacer clic fuera del contenido
+        aboutModal.addEventListener('click', (e) => {
+            if (e.target === aboutModal) {
+                aboutModal.classList.add('hidden');
+            }
+        });
+    }
 });

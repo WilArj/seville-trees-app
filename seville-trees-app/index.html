@@ -132,6 +132,14 @@
                 <div class="spinner"></div>
                 <p id="loader-text">Cargando datos...</p>
             </div>
+
+            <!-- About Button Footer -->
+            <div class="sidebar-footer">
+                <button id="about-btn" class="about-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    Acerca de la aplicación
+                </button>
+            </div>
         </div>
         </div>
 
@@ -139,6 +147,29 @@
         <main id="map-container">
             <div id="map"></div>
         </main>
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <button id="close-modal-btn" class="close-modal-btn" title="Cerrar">&times;</button>
+            <h2>Sobre este proyecto</h2>
+            <div class="modal-body">
+                <p><strong>Desarrollado por:</strong> Guillermo Arjona Ramos<br>
+                Contacto: <a href="mailto:garjonar@gmail.com">garjonar@gmail.com</a></p>
+                
+                <h3>Fuentes de Datos</h3>
+                <p>Esta aplicación es un proyecto independiente construido utilizando información de uso público (Open Data):</p>
+                <ul>
+                    <li><a href="https://www.sevilla.org/servicios/medio-ambiente-parques-jardines/inventario-de-arbolado-de-sevilla" target="_blank" rel="noopener noreferrer">Inventario de arbolado del Ayuntamiento de Sevilla</a></li>
+                    <li><a href="http://sig.urbanismosevilla.org/InicioIDE.aspx" target="_blank" rel="noopener noreferrer">Infraestructura de Datos Espaciales (Urbanismo)</a></li>
+                </ul>
+                
+                <div class="legal-disclaimer">
+                    <p><em><strong>Aviso:</strong> Esta aplicación no es oficial ni tiene vinculación directa con el Ayuntamiento de Sevilla. Los datos se muestran con fines informativos y divulgativos en el marco de la reutilización de información del sector público.</em></p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Leaflet JS -->
