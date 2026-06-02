@@ -376,7 +376,7 @@ async function processDistrictQueue() {
             });
             polygon.closeTooltip();
             polygon.unbindTooltip(); // Quitar tooltip de invitación a cargar
-            polygon.bindTooltip(`<strong>${name}</strong> (Cargado)`, { sticky: true });
+            polygon.bindTooltip(`<strong>${name}</strong>`, { sticky: true });
         }
 
         renderDistrictTags();
@@ -573,7 +573,7 @@ function renderTrees() {
                 <p><strong>Estado:</strong> ${tree.estado || 'Normal'}</p>
                 ${tree.categoria_amenaza ? `<p style="color: #ef4444;"><strong>Amenaza:</strong> ${tree.categoria_amenaza}</p>` : ''}
                 ${tree.categoria_proteccion && !tree.categoria_amenaza ? `<p style="color: #3b82f6;"><strong>Protección:</strong> ${tree.categoria_proteccion}</p>` : ''}
-                ${isSingular && tree.idx !== null && tree.idx !== undefined ? `<p style="color: #94a3b8; font-size: 0.75rem;">IDX Censo: ${tree.idx}</p>` : ''}
+                ${tree.idx !== null && tree.idx !== undefined ? `<p style="color: #94a3b8; font-size: 0.75rem;">IDX Censo: ${tree.idx}</p>` : ''}
             </div>
         `;
 
@@ -696,7 +696,7 @@ function renderTreeListChunk() {
 
         const subtitle = document.createElement('div');
         subtitle.className = 'tree-item-subtitle';
-        subtitle.textContent = `${tree.barrio || '-'}, ${tree.distrito || '-'}`;
+        subtitle.textContent = `[ID: ${tree.idx || '-'}] ${tree.barrio || '-'}, ${tree.distrito || '-'}`;
 
         item.appendChild(title);
         item.appendChild(subtitle);
