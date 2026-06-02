@@ -31,6 +31,8 @@ body {
 /* Sidebar / Controls */
 .sidebar {
     width: 380px;
+    /* On mobile we want the sidebar to take full width or 90% */
+    max-width: 100vw;
     height: 100vh;
     position: absolute;
     top: 0;
@@ -41,6 +43,20 @@ body {
     padding: 2rem;
     border-right: 1px solid var(--border);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto; /* Allow scrolling the sidebar content */
+    overflow-x: hidden;
+}
+
+/* Custom Scrollbar for sidebar to make it sleek */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
 }
 
 .sidebar.collapsed {
