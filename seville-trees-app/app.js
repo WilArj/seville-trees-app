@@ -42,6 +42,10 @@ let loadedDistrictsFlowers = new Set(); // For district mode: stores filenames o
 // Caches
 let fullTreesCache = null; // Cache for the 38MB JSON
 
+// District Loading Queue
+let districtQueue = [];
+let isDistrictLoading = false;
+
 let map;
 let markerLayerGroup;
 let selectedSpecies = [];
@@ -325,13 +329,33 @@ function setupBoundaryEvents(distrito, polygon) {
     });
 }
 
-// Cargar y anexar datos de un distrito en modo segmentado
+// Cargar y anexar datos de un distrito en modo segmentado (mediante cola de tareas)
 async function loadDistrictAndAppend(name, filename) {
     if (loadedDistricts.has(filename)) return;
-    loadedDistricts.add(filename); // Bloqueo inmediato para evitar doble clic y condición de carrera
+    loadedDistricts.add(filename); // Bloqueo preventivo de la UI inmediata
+
+    return new Promise((resolve, reject) => {
+        districtQueue.push({ name, filename, resolve, reject });
+        processDistrictQueue();
+    });
+}
+
+// Consumidor asíncrono de la cola de distritos
+async function processDistrictQueue() {
+    // Si ya estamos descargando algo, o la cola está vacía, no hacemos nada
+    if (isDistrictLoading || districtQueue.length === 0) return;
+    
+    isDistrictLoading = true;
+    const { name, filename, resolve, reject } = districtQueue.shift();
     
     loader.classList.remove('hidden');
-    loaderText.textContent = `Descargando distrito ${name}...`;
+    
+    // Indicador visual de la cola
+    if (districtQueue.length > 0) {
+        loaderText.textContent = `Descargando distrito ${name}... (${districtQueue.length} en espera)`;
+    } else {
+        loaderText.textContent = `Descargando distrito ${name}...`;
+    }
 
     try {
         const response = await fetch(`data/${filename}?v=${Date.now()}`);
@@ -341,9 +365,6 @@ async function loadDistrictAndAppend(name, filename) {
         
         // Unir datos de árboles
         allTrees.push(...districtTrees);
-        
-        // Registrar distrito como cargado (ya lo hicimos arriba, pero lo dejamos por si acaso)
-        loadedDistricts.add(filename);
         
         // Modificar el estilo del polígono a estilo "Cargado" (casi invisible, sin hover)
         const polygon = boundaryLayers[name];
@@ -360,11 +381,21 @@ async function loadDistrictAndAppend(name, filename) {
 
         renderDistrictTags();
         renderTrees();
+        resolve(true);
     } catch (err) {
-        loadedDistricts.delete(filename); // Release lock
+        loadedDistricts.delete(filename); // Liberamos el candado
         alert(`No se pudo cargar el distrito ${name}: ` + err.message);
+        reject(err);
     } finally {
-        loader.classList.add('hidden');
+        isDistrictLoading = false;
+        
+        // Comprobar recursivamente si hay más tareas
+        if (districtQueue.length === 0) {
+            loader.classList.add('hidden');
+        } else {
+            // Breve respiro al navegador antes del siguiente fetch pesado
+            setTimeout(processDistrictQueue, 50);
+        }
     }
 }
 
