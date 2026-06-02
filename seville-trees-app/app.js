@@ -1047,13 +1047,12 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSingularTrees(); // Cargar árboles singulares del CSV
     loadCensusDataBackground(); // Cargar censo de Sevilla en segundo plano
 
-    // Lógica para colapsar el menú lateral
+    // Lógica para colapsar el menú lateral (Responsive)
     const toggleBtn = document.getElementById('toggle-sidebar-btn');
-    const sidebar = document.getElementById('sidebar');
-    if (toggleBtn && sidebar) {
+    if (toggleBtn) {
         toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            // Recalcular tamaño del mapa tras la animación (0.3s)
+            document.body.classList.toggle('sidebar-collapsed');
+            // Recalcular tamaño del mapa tras la animación
             setTimeout(() => {
                 if (map) map.invalidateSize();
             }, 300);

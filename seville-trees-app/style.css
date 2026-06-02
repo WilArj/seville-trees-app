@@ -43,6 +43,10 @@ body {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+body.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+}
+
 .sidebar-content {
     display: flex;
     flex-direction: column;
@@ -71,7 +75,7 @@ body {
 .toggle-sidebar-btn {
     position: absolute;
     top: 2rem;
-    right: -40px;
+    left: 380px; /* Fixed position outside sidebar */
     width: 40px;
     height: 48px;
     background: var(--bg-panel);
@@ -87,6 +91,7 @@ body {
     justify-content: center;
     box-shadow: 4px 0 10px rgba(0,0,0,0.2);
     z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toggle-sidebar-btn:hover {
@@ -98,7 +103,11 @@ body {
     transition: transform 0.3s ease;
 }
 
-.sidebar.collapsed .toggle-sidebar-btn svg {
+body.sidebar-collapsed .toggle-sidebar-btn {
+    left: 0;
+}
+
+body.sidebar-collapsed .toggle-sidebar-btn svg {
     transform: rotate(180deg);
 }
 
@@ -633,6 +642,48 @@ input:checked + .slider:before {
     color: white !important;
     box-shadow: 0 4px 12px rgba(234, 179, 8, 0.15);
     transform: translateY(-1px);
+}
+
+/* RESPONSIVE DESIGN (MOBILE) */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100vw;
+    }
+    
+    .sidebar-content {
+        overflow-y: auto; /* Allow entire sidebar to scroll */
+        padding: 1.5rem;
+    }
+    
+    .trees-list {
+        max-height: 400px; /* Force an internal scroll specifically for the trees list, showing ~10 trees */
+    }
+
+    .toggle-sidebar-btn {
+        left: auto;
+        right: 0; /* Button sticks to the right edge of screen when sidebar covers it */
+        border-radius: 8px 0 0 8px;
+        border-right: none;
+        border-left: 1px solid var(--border);
+        box-shadow: -4px 0 10px rgba(0,0,0,0.2);
+    }
+    
+    .toggle-sidebar-btn svg {
+        transform: rotate(180deg); /* Flip icon direction for right side */
+    }
+
+    body.sidebar-collapsed .toggle-sidebar-btn {
+        right: auto;
+        left: 0; /* Attach to left edge of screen when sidebar is closed */
+        border-radius: 0 8px 8px 0;
+        border-left: none;
+        border-right: 1px solid var(--border);
+        box-shadow: 4px 0 10px rgba(0,0,0,0.2);
+    }
+    
+    body.sidebar-collapsed .toggle-sidebar-btn svg {
+        transform: rotate(0deg);
+    }
 }
 
 
