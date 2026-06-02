@@ -817,39 +817,8 @@ function setupEvents() {
     livingOnlyFilter.addEventListener('change', renderTrees);
     singularFilter.addEventListener('change', renderTrees);
 
-    threatenedFilter.addEventListener('change', function () {
-        const currentData = fullTreesCache || allTrees;
-        if (this.checked) {
-            const threatenedNames = [...new Set(currentData.filter(t => t.amenazado).map(t => t.especie))];
-            threatenedNames.forEach(name => {
-                if (!selectedSpecies.some(s => s.name === name)) {
-                    selectedSpecies.push({ name: name, showFlower: false });
-                }
-            });
-        } else {
-            const threatenedNames = [...new Set(currentData.filter(t => t.amenazado).map(t => t.especie))];
-            selectedSpecies = selectedSpecies.filter(s => !threatenedNames.includes(s.name));
-        }
-        renderTags();
-        renderTrees();
-    });
-
-    protectedFilter.addEventListener('change', function () {
-        const currentData = fullTreesCache || allTrees;
-        if (this.checked) {
-            const protectedNames = [...new Set(currentData.filter(t => t.protegido).map(t => t.especie))];
-            protectedNames.forEach(name => {
-                if (!selectedSpecies.some(s => s.name === name)) {
-                    selectedSpecies.push({ name: name, showFlower: false });
-                }
-            });
-        } else {
-            const protectedNames = [...new Set(currentData.filter(t => t.protegido).map(t => t.especie))];
-            selectedSpecies = selectedSpecies.filter(s => !protectedNames.includes(s.name));
-        }
-        renderTags();
-        renderTrees();
-    });
+    threatenedFilter.addEventListener('change', renderTrees);
+    protectedFilter.addEventListener('change', renderTrees);
 
     // Input autocomplete buscador especies
     speciesSearch.addEventListener('input', function (e) {
