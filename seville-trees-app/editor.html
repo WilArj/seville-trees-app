@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Árboles - Sevilla</title>
+    
+    <script>
+    window.onerror = function(msg, url, line, col, err) {
+        alert("CRASH JS: " + msg + "\nLinea: " + line + "\nColumna: " + col);
+    };
+    window.addEventListener('unhandledrejection', function(event) {
+        alert("CRASH ASYNC: " + event.reason);
+    });
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    
+    <!-- Custom CSS (includes main app styles) -->
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* Specific overrides/additions for editor page */
+        .sidebar {
+            width: 420px;
+        }
+        
+        .editor-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .form-row .control-group {
+            flex: 1;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn-editor {
+            flex: 1;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-editor:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-editor.btn-primary {
+            background: #eab308; /* Gold color */
+            color: #0f172a;
+            border-color: #eab308;
+        }
+
+        .btn-editor.btn-primary:hover {
+            background: #ca8a04;
+            border-color: #ca8a04;
+        }
+
+        .btn-editor.btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-editor.btn-danger:hover {
+            background: rgba(239, 68, 68, 0.35);
+            color: white;
+        }
+
+        .btn-editor.btn-success {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .btn-editor.btn-success:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-search-idx {
+            padding: 0 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-search-idx:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .input-with-button {
+            display: flex;
+        }
+
+        .input-with-button input {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .resolved-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            padding: 0.15rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            width: fit-content;
+            margin-top: 0.25rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #10b981;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            font-weight: 500;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Pulsing Gold Dot Icon */
+        .gold-pulse-marker {
+            width: 14px;
+            height: 14px;
+            background: #eab308;
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 12px #eab308, 0 0 0 4px rgba(234, 179, 8, 0.4);
+            cursor: move;
+        }
+        
+        .gold-pulse-marker.selected {
+            background: #ef4444;
+            box-shadow: 0 0 12px #ef4444, 0 0 0 4px rgba(239, 68, 68, 0.4);
+        }
+
+        .census-info-box {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .census-info-box p {
+            margin: 0.25rem 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .census-info-box strong {
+            color: var(--text-main);
+        }
+
+        .selected-item-indicator {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #eab308;
+            margin-bottom: 0.25rem;
+        }
+        
+        .list-header {
+            margin-top: 1.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .btn-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem 1.25rem;
+            color: var(--text-main);
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
+            width: 100%;
+            margin-bottom: 1.25rem;
+        }
+
+        .btn-menu:hover {
+            background: rgba(34, 197, 94, 0.08);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-menu-icon {
+            font-size: 1.75rem;
+        }
+
+        .district-tooltip {
+            background: #0f172a !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text-main) !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.8rem !important;
+            font-weight: 500 !important;
+            border-radius: 4px !important;
+            padding: 0.2rem 0.5rem !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Sidebar / Control Panel -->
+        <aside class="sidebar glass">
+            <div class="sidebar-header">
+                <div class="header-actions">
+                    <a href="index.html" class="btn-back" id="btn-top-back">⬅ Volver a la App</a>
+                </div>
+                <h1>Editor de Árboles</h1>
+                <p id="editor-description">Elige una opción para empezar a gestionar el censo.</p>
+            </div>
+            
+            <!-- 1. MENU VIEW -->
+            <div id="menu-view" style="margin-top: 1rem;">
+                <button type="button" class="btn-menu" id="btn-mode-create">
+                    <span class="btn-menu-icon">➕</span>
+                    <span>Crear Nuevo Árbol</span>
+                </button>
+                <button type="button" class="btn-menu" id="btn-mode-edit">
+                    <span class="btn-menu-icon">✏️</span>
+                    <span>Editar Árbol Existente</span>
+                </button>
+            </div>
+
+            <!-- 2. DISTRICT SELECT VIEW (Replaced by Map Click logic, keeping for back button compatibility or merging) -->
+            <div id="district-select-view" class="hidden" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                <!-- Ocultamos esta vista ya que la selección se hará en el mapa y la edición en el panel principal -->
+            </div>
+
+            <!-- 3. ACTIVE EDITOR VIEW (Initially Hidden) -->
+            <div id="active-editor-view" class="hidden">
+                <!-- Contenedor para distritos cargados en modo edición -->
+                <div id="edit-mode-controls" class="hidden" style="margin-bottom: 1rem;">
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Distritos Cargados (haz clic en el mapa para añadir más):</p>
+                    <div id="loaded-districts-tags" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;"></div>
+                </div>
+
+                <div id="editor-form-panel">
+                    <div class="selected-item-indicator" id="selected-indicator">Creando Nuevo Árbol</div>
+                    <form id="tree-form" class="editor-form" onsubmit="return false;">
+                        
+                        <div class="form-row">
+                            <!-- Latitude -->
+                            <div class="control-group">
+                                <label for="input-lat">Latitud</label>
+                                <input type="text" id="input-lat" readonly placeholder="Calculada al hacer clic">
+                            </div>
+                            
+                            <!-- Longitude -->
+                            <div class="control-group">
+                                <label for="input-lon">Longitud</label>
+                                <input type="text" id="input-lon" readonly placeholder="Calculada al hacer clic">
+                            </div>
+                        </div>
+
+                        <!-- Especie Científica -->
+                        <div class="control-group">
+                            <label for="input-especie">Especie Científica</label>
+                            <input type="text" id="input-especie" placeholder="Ej: Platanus x hispanica" required>
+                        </div>
+
+                        <!-- Distrito (Auto-calculated) -->
+                        <div class="control-group">
+                            <label for="input-district">Distrito</label>
+                            <input type="text" id="input-district" readonly placeholder="Se calcula al hacer clic en el mapa">
+                        </div>
+
+                        <!-- Singular Toggle Checkbox -->
+                        <div class="control-group checkbox-group" style="margin-top: 0.25rem; margin-bottom: 0.25rem;">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="input-singular">
+                                <span class="slider round"></span>
+                            </label>
+                            <span class="toggle-label" style="font-size: 0.9rem; color: var(--text-main); font-weight: 500;">Árbol Singular</span>
+                        </div>
+
+                        <!-- Actions for selected element -->
+                        <div class="btn-group">
+                            <button type="button" class="btn-editor btn-danger hidden" id="btn-delete">Borrar</button>
+                            <button type="button" class="btn-editor" id="btn-clear">Limpiar / Nuevo</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="btn-group" style="margin-top: 1rem; margin-bottom: 1rem; flex-direction: column; gap: 0.5rem;">
+                    <button type="button" class="btn-editor btn-success btn-primary" id="btn-save-all" style="width: 100%; font-size: 1rem; padding: 0.9rem;">
+                        💾 Guardar Base de Datos
+                    </button>
+                </div>
+
+                <!-- List of trees in the visible area -->
+                <div class="list-header" id="list-header-title">Árboles en el Área Visible (<span id="count-registered">0</span>)</div>
+                <div class="trees-list-container" style="max-height: calc(100vh - 650px); overflow-y: auto;">
+                    <div id="singular-trees-list" class="trees-list"></div>
+                </div>
+            </div>
+
+            <div class="loader hidden" id="loader">
+                <div class="spinner"></div>
+                <p id="loader-text">Procesando...</p>
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <main id="map-container">
+            <div id="map"></div>
+        </main>
+    </div>
+
+    <!-- Toast for Notifications -->
+    <div id="toast" class="toast">¡Cambios guardados con éxito!</div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    
+    <!-- Turf.js for spatial calculations -->
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+    <!-- Custom Editor JS -->
+    <script src="editor.js?v=3" defer></script>
+</body>
+</html>

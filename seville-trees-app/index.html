@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario de Árboles - Sevilla</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- Leaflet MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Sidebar / Control Panel -->
+        <aside class="sidebar glass">
+            <div class="sidebar-header">
+                <h1>Árboles de Sevilla</h1>
+                <p>Explora el inventario botánico de la ciudad</p>
+                
+                <!-- View Mode Selector -->
+                <div class="view-mode-selector">
+                    <button id="btn-mode-global" class="btn-mode" title="Ver toda Sevilla usando Clustering">Global</button>
+                    <button id="btn-mode-district" class="btn-mode" title="Cargar distritos de manera interactiva">Distritos</button>
+                </div>
+                
+                <!-- Link to Singular Editor -->
+                <div style="margin-top: 1rem;">
+                    <a href="editor.html" class="btn-editor-link" style="text-decoration: none; color: #eab308; border: 1px solid rgba(234, 179, 8, 0.4); background: rgba(234, 179, 8, 0.1); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; justify-content: center;">
+                        ⚙️ Editor
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Dynamic Controls Panel -->
+            <div id="controls-panel" class="controls">
+                <!-- Global Flower Toggle (Only shown in Global Mode) -->
+                <div id="global-flower-control" class="control-group checkbox-group hidden">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="global-flower-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Mostrar iconos de flores</span>
+                </div>
+
+                <!-- District Mode Indicator (Only shown in District Mode) -->
+                <div id="district-mode-indicator" class="control-group">
+                    <label>Distritos Cargados</label>
+                    <div id="loaded-districts-tags" class="tags-container">
+                        <span class="no-tags-placeholder">Ninguno. Haz clic en el mapa para cargar.</span>
+                    </div>
+                </div>
+
+                <!-- IDX Search -->
+                <div class="control-group">
+                    <label for="id-search">Buscador por Identificador (IDX)</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="number" id="id-search" placeholder="Ej: 166937" autocomplete="off" style="flex: 1; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; padding: 0.75rem; border-radius: 8px;">
+                        <button id="btn-id-search" style="padding: 0 1rem; border-radius: 8px; background: #eab308; color: #000; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s;">Ir</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="species-search">Filtrar por Especie</label>
+                    <input type="text" id="species-search" placeholder="Ej: Citrus aurantium..." autocomplete="off">
+                    <div id="autocomplete-list" class="autocomplete-items hidden"></div>
+                    <div id="selected-species-tags" class="tags-container"></div>
+                </div>
+
+                <div class="control-group checkbox-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="living-only-filter" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Solo árboles vivos</span>
+                </div>
+
+                <div class="control-group checkbox-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="threatened-filter">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Solo especies amenazadas</span>
+                </div>
+
+                <div class="control-group checkbox-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="protected-filter">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Solo especies protegidas</span>
+                </div>
+
+                <div class="control-group checkbox-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="singular-filter">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Solo árboles singulares</span>
+                </div>
+            </div>
+            
+            <!-- Stats Panel -->
+            <div id="stats-panel" class="stats-panel">
+                <div class="stat-box">
+                    <span class="stat-value" id="stat-total">0</span>
+                    <span class="stat-label">Árboles Visibles</span>
+                </div>
+            </div>
+
+            <!-- Virtual List Panel -->
+            <div id="list-panel" class="trees-list-container">
+                <div id="visible-trees-list" class="trees-list"></div>
+            </div>
+            
+            <div class="loader hidden" id="loader">
+                <div class="spinner"></div>
+                <p id="loader-text">Cargando datos...</p>
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <main id="map-container">
+            <div id="map"></div>
+        </main>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Leaflet MarkerCluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    <!-- Custom JS -->
+    <script src="app.js"></script>
+</body>
+</html>
