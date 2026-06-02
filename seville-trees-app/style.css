@@ -38,23 +38,28 @@ body {
     top: 0;
     left: 0;
     z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    padding: 2rem;
+    padding: 0; /* padding moved to content */
     border-right: 1px solid var(--border);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow-y: auto; /* Allow scrolling the sidebar content */
+}
+
+.sidebar-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
     overflow-x: hidden;
+    padding: 2rem;
 }
 
 /* Custom Scrollbar for sidebar to make it sleek */
-.sidebar::-webkit-scrollbar {
+.sidebar-content::-webkit-scrollbar {
     width: 6px;
 }
-.sidebar::-webkit-scrollbar-track {
+.sidebar-content::-webkit-scrollbar-track {
     background: transparent;
 }
-.sidebar::-webkit-scrollbar-thumb {
+.sidebar-content::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
 }
