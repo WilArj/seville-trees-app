@@ -632,7 +632,7 @@ function renderTrees() {
         }
 
         marker.bindPopup(popupContent);
-        marker._originalOptions = marker.options;
+        marker._originalOptions = { ...marker.options };
         if (marker.options.icon) marker._originalIconOpacity = '1';
 
         if (currentMode === 'global') {
