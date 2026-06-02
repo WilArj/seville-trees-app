@@ -75,27 +75,26 @@ body.sidebar-collapsed .sidebar {
 .toggle-sidebar-btn {
     position: absolute;
     top: 2rem;
-    left: 380px; /* Fixed position outside sidebar */
+    left: 315px; /* Fully inside the 380px sidebar */
     width: 40px;
-    height: 48px;
-    background: var(--bg-panel);
+    height: 40px;
+    background: rgba(255, 255, 255, 0.05);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
-    border-left: none;
-    border-radius: 0 8px 8px 0;
+    border-radius: 8px; /* Full rounded corners when inside */
     color: var(--text-main);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 4px 0 10px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     z-index: 2000; /* Force button to always be on top of the sidebar */
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toggle-sidebar-btn:hover {
-    background: rgba(34, 139, 34, 0.2);
+    background: rgba(255, 255, 255, 0.15);
     color: white;
 }
 
@@ -105,6 +104,9 @@ body.sidebar-collapsed .sidebar {
 
 body.sidebar-collapsed .toggle-sidebar-btn {
     left: 0;
+    border-radius: 0 8px 8px 0; /* Flat left edge when collapsed */
+    border-left: none;
+    background: var(--bg-panel);
 }
 
 body.sidebar-collapsed .toggle-sidebar-btn svg {
@@ -661,11 +663,10 @@ input:checked + .slider:before {
 
     .toggle-sidebar-btn {
         left: auto;
-        right: 0; /* Button sticks to the right edge of screen when sidebar covers it */
-        border-radius: 8px 0 0 8px;
-        border-right: none;
-        border-left: 1px solid var(--border);
-        box-shadow: -4px 0 10px rgba(0,0,0,0.2);
+        right: 1.5rem; /* Button stays inside the 100vw screen boundary */
+        border-radius: 8px; /* Fully rounded when inside */
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
     
     .toggle-sidebar-btn svg {
@@ -677,8 +678,7 @@ input:checked + .slider:before {
         left: 0; /* Attach to left edge of screen when sidebar is closed */
         border-radius: 0 8px 8px 0;
         border-left: none;
-        border-right: 1px solid var(--border);
-        box-shadow: 4px 0 10px rgba(0,0,0,0.2);
+        background: var(--bg-panel);
     }
     
     body.sidebar-collapsed .toggle-sidebar-btn svg {
