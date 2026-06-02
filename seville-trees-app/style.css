@@ -90,7 +90,7 @@ body.sidebar-collapsed .sidebar {
     align-items: center;
     justify-content: center;
     box-shadow: 4px 0 10px rgba(0,0,0,0.2);
-    z-index: 1000;
+    z-index: 2000; /* Force button to always be on top of the sidebar */
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
