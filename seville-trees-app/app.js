@@ -579,16 +579,28 @@ function renderTrees() {
 
     // Filtros lógicos
     let filteredTrees = allTrees.filter(tree => {
+        // 1. Filtros restrictivos (Lógica AND)
         if (livingOnly && !isLiving(tree)) return false;
-        if (threatenedOnly && !tree.amenazado) return false;
-        if (protectedOnly && !tree.protegido) return false;
         if (selectedSpecies.length > 0 && !selectedSpecies.some(s => s.name === tree.especie)) return false;
         
-        if (isSingularFilterActive) {
-            const isSingular = (tree.idx !== null && tree.idx !== undefined && singularIndices.has(tree.idx)) ||
-                               (tree.lat && tree.lon && singularCoords.has(`${Number(tree.lat).toFixed(6)},${Number(tree.lon).toFixed(6)}`)) ||
-                               (tree.singular === true);
-            if (!isSingular) return false;
+        // 2. Filtros de características especiales (Lógica OR aditiva)
+        const hasSpecialActive = threatenedOnly || protectedOnly || isSingularFilterActive;
+        
+        if (hasSpecialActive) {
+            const checkThreatened = threatenedOnly ? tree.amenazado : false;
+            const checkProtected = protectedOnly ? tree.protegido : false;
+            
+            let checkSingular = false;
+            if (isSingularFilterActive) {
+                checkSingular = (tree.idx !== null && tree.idx !== undefined && singularIndices.has(tree.idx)) ||
+                                (tree.lat && tree.lon && singularCoords.has(`${Number(tree.lat).toFixed(6)},${Number(tree.lon).toFixed(6)}`)) ||
+                                (tree.singular === true);
+            }
+            
+            // El árbol debe cumplir al menos una de las condiciones especiales activadas
+            if (!checkThreatened && !checkProtected && !checkSingular) {
+                return false;
+            }
         }
         
         return true;
