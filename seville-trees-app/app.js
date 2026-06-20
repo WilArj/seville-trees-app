@@ -658,10 +658,13 @@ function renderTrees() {
             if (match) singularName = match.name;
         }
 
-        const wikipediaUrl = tree.especie ? `https://es.wikipedia.org/w/index.php?search=${encodeURIComponent(tree.especie)}&title=Especial:Buscar` : '#';
-        const speciesLink = tree.especie 
-            ? `<a href="${wikipediaUrl}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3);" title="Buscar en Wikipedia">${tree.especie}</a>`
-            : 'Desconocida';
+        const nonClickableSpecies = ['alcorque vacío', 'alcorque vacio', 'tocón', 'tocon', 'desconocida', 'no definido', 'no consta'];
+        const isClickable = tree.especie && !nonClickableSpecies.some(s => tree.especie.toLowerCase().includes(s));
+
+        const wikipediaUrl = isClickable ? `https://es.wikipedia.org/w/index.php?search=${encodeURIComponent(tree.especie)}&title=Especial:Buscar` : '#';
+        const speciesLink = isClickable 
+            ? `<a href="${wikipediaUrl}" class="species-wiki-link" target="_blank" rel="noopener noreferrer" title="Buscar en Wikipedia">${tree.especie}</a>`
+            : (tree.especie || 'Desconocida');
 
         const titleText = isSingular 
             ? `Árbol Singular: ${singularName || speciesLink}` 

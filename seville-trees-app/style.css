@@ -840,3 +840,16 @@ input:checked + .slider:before {
     50% { opacity: 0.4; }
     100% { opacity: 1; }
 }
+
+/* Wikipedia link in popups */
+.species-wiki-link {
+    color: inherit;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.species-wiki-link:hover {
+    color: #38bdf8; /* Soft blue to indicate interactivity */
+    text-decoration: underline;
+    text-decoration-color: #38bdf8;
+}
