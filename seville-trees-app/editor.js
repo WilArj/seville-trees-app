@@ -135,10 +135,27 @@ function computeLoadedDistrictTrees() {
 
 // Initialize Leaflet Map
 function initMap() {
+    let initialCenter = [37.3891, -5.9845];
+    let initialZoom = 13;
+
+    // Intentar recuperar el estado previo del mapa
+    const savedState = localStorage.getItem('sevilleTreesMapState');
+    if (savedState) {
+        try {
+            const state = JSON.parse(savedState);
+            if (state.center && state.zoom) {
+                initialCenter = [state.center.lat, state.center.lng];
+                initialZoom = state.zoom;
+            }
+        } catch (e) {
+            console.warn('Error reading map state:', e);
+        }
+    }
+
     map = L.map('map', {
         zoomControl: false,
         preferCanvas: true
-    }).setView([37.3891, -5.9845], 13);
+    }).setView(initialCenter, initialZoom);
     
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
@@ -147,6 +164,58 @@ function initMap() {
         subdomains: 'abcd',
         maxZoom: 20
     }).addTo(map);
+
+    // Guardar el estado del mapa cada vez que se mueva o haga zoom
+    map.on('moveend', () => {
+        localStorage.setItem('sevilleTreesMapState', JSON.stringify({
+            center: map.getCenter(),
+            zoom: map.getZoom()
+        }));
+    });
+
+    // Lógica del botón GPS
+    const gpsBtn = document.getElementById('gps-btn');
+    let userLocationMarker = null;
+
+    if (gpsBtn) {
+        gpsBtn.addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                alert('Tu navegador no soporta geolocalización.');
+                return;
+            }
+            
+            gpsBtn.classList.add('locating');
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    gpsBtn.classList.remove('locating');
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    map.flyTo([lat, lng], 17, { duration: 1.5 });
+                    
+                    if (userLocationMarker) {
+                        userLocationMarker.setLatLng([lat, lng]);
+                    } else {
+                        userLocationMarker = L.circleMarker([lat, lng], {
+                            radius: 8,
+                            fillColor: "#3b82f6", // Blue color
+                            color: "#ffffff",
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.9
+                        }).addTo(map);
+                    }
+                },
+                (error) => {
+                    gpsBtn.classList.remove('locating');
+                    console.warn('Error GPS:', error);
+                    alert('No se pudo obtener la ubicación. Por favor, revisa los permisos.');
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        });
+    }
 
     map.on('click', (e) => {
         if (editorMode === 'menu') return;
@@ -359,8 +428,6 @@ function switchMode(mode) {
         if (map.tap) map.tap.disable();
         
         disableCreateModeGuidance();
-        
-        map.setView([37.3891, -5.9845], 13);
     } else {
         map.dragging.enable();
         map.touchZoom.enable();
