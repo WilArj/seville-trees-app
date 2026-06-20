@@ -496,6 +496,8 @@ async function enableCreateModeGuidance() {
             disableClusteringAtZoom: 17,
             chunkedLoading: true,
             chunkInterval: 50,
+            zoomToBoundsOnClick: false,
+            spiderfyOnMaxZoom: false,
             iconCreateFunction: function (cluster) {
                 const childCount = cluster.getChildCount();
                 let c = ' marker-cluster-';

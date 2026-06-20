@@ -25,7 +25,7 @@ const globalFlowerToggle = document.getElementById('global-flower-toggle');
 const globalFlowerControl = document.getElementById('global-flower-control');
 
 // App State
-let currentMode = 'district'; // Default to district mode on startup
+let currentMode = 'global'; // Default to global mode on startup
 let allTrees = [];        // Currently active dataset (depends on mode)
 let speciesList = [];     // Full species list for autocomplete
 let districtsMetadata = []; // District count info
@@ -276,6 +276,9 @@ async function enterModeGlobal() {
         disableClusteringAtZoom: 17, // Desactivar agrupamiento a nivel de zoom muy cercano
         chunkedLoading: true,        // Procesamiento asíncrono en segundo plano
         chunkInterval: 50,
+        zoomToBoundsOnClick: false,  // Desactivar zoom al hacer clic en el cluster
+        spiderfyOnMaxZoom: false,    // Desactivar expansión radial (spiderfy)
+
         iconCreateFunction: function (cluster) {
             // Icono de cluster compacto y estilizado
             const childCount = cluster.getChildCount();
@@ -1161,7 +1164,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMap();
     setupEvents();
     loadInitialMetadata();
-    enterModeDistrict(); // Cargar modo distritos por defecto al arrancar
+    enterModeGlobal(); // Cargar modo global por defecto al arrancar
     loadSingularTrees(); // Cargar árboles singulares del CSV
     loadCensusDataBackground(); // Cargar censo de Sevilla en segundo plano
 

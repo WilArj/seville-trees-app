@@ -47,7 +47,9 @@ function initMap() {
         disableClusteringAtZoom: 17, // Detener clustering en zoom muy cercano
         chunkedLoading: true,        // Evita congelar el navegador al procesar miles de puntos
         chunkInterval: 50,           // Procesar en intervalos de 50ms
-        maxClusterRadius: 80         // Radio en píxeles para agrupar marcadores
+        maxClusterRadius: 80,        // Radio en píxeles para agrupar marcadores
+        zoomToBoundsOnClick: false,
+        spiderfyOnMaxZoom: false
     }).addTo(map);
     
     map.on('zoomend', function() {
