@@ -224,7 +224,11 @@ async function loadInitialMetadata() {
     try {
         // 1. Cargar especies únicas
         const speciesResponse = await fetch(`data/species.json?v=${Date.now()}`);
-        if (speciesResponse.ok) speciesList = await speciesResponse.json();
+        if (speciesResponse.ok) {
+            const rawSpecies = await speciesResponse.json();
+            const invalidSpecies = ['alcorque vacío', 'alcorque vacio', 'tocón', 'tocon', 'desconocida', 'no definido', 'no consta', 'marra'];
+            speciesList = rawSpecies.filter(s => !invalidSpecies.some(kw => s.toLowerCase().includes(kw)));
+        }
 
         // 2. Cargar metadatos de distritos
         const districtsResponse = await fetch(`data/districts.json?v=${Date.now()}`);
