@@ -857,4 +857,14 @@ input:checked + .slider:before {
     100% { transform: scale(1); opacity: 1; }
 }
 
+/* Responsividad para móviles y iPads */
+@media (max-width: 768px) {
+    .gps-btn {
+        bottom: 7rem; /* Subir el botón para esquivar la barra de navegación de Safari/Chrome y los botones de Zoom */
+        right: 1rem;
+        width: 48px;  /* Ligeramente más grande para que sea fácil de pulsar con el pulgar */
+        height: 48px;
+    }
+}
+
 
