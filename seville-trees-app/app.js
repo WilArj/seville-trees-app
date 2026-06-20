@@ -226,8 +226,18 @@ async function loadInitialMetadata() {
         const speciesResponse = await fetch(`data/species.json?v=${Date.now()}`);
         if (speciesResponse.ok) {
             const rawSpecies = await speciesResponse.json();
-            const invalidSpecies = ['alcorque vacío', 'alcorque vacio', 'tocón', 'tocon', 'desconocida', 'no definido', 'no consta', 'marra'];
-            speciesList = rawSpecies.filter(s => !invalidSpecies.some(kw => s.toLowerCase().includes(kw)));
+            const deadKeywords = ['alcorque vacío', 'alcorque vacio', 'tocón', 'tocon', 'marra', 'vacio', 'vacío', 'muerto', 'no plantar'];
+            const unknownKeywords = ['desconocida', 'no definido', 'no consta'];
+            
+            speciesList = rawSpecies.filter(s => {
+                const lower = s.toLowerCase();
+                return !deadKeywords.some(kw => lower.includes(kw)) && !unknownKeywords.some(kw => lower.includes(kw));
+            });
+            
+            // Unify removed categories into virtual selectable species
+            speciesList.push('Árbol muerto / Marra / Alcorque vacío');
+            speciesList.push('Especie desconocida / No consta');
+            speciesList.sort();
         }
 
         // 2. Cargar metadatos de distritos
@@ -613,7 +623,14 @@ function renderTrees() {
     let filteredTrees = allTrees.filter(tree => {
         // 1. Filtros restrictivos (Lógica AND)
         if (livingOnly && !isLiving(tree)) return false;
-        if (selectedSpecies.length > 0 && !selectedSpecies.some(s => s.name === tree.especie)) return false;
+        if (selectedSpecies.length > 0 && !selectedSpecies.some(s => {
+            if (s.name === 'Árbol muerto / Marra / Alcorque vacío') return !isLiving(tree);
+            if (s.name === 'Especie desconocida / No consta') {
+                 const lowerEsp = (tree.especie || '').toLowerCase();
+                 return ['desconocida', 'no definido', 'no consta'].some(kw => lowerEsp.includes(kw));
+            }
+            return s.name === tree.especie;
+        })) return false;
         
         // 2. Filtros de características especiales (Lógica OR aditiva)
         const hasSpecialActive = threatenedOnly || protectedOnly || isSingularFilterActive;
@@ -973,14 +990,28 @@ function setupEvents() {
 
         autocompleteList.classList.remove('hidden');
 
+        const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const searchVal = normalize(val);
+
         const suggestions = speciesList
-            .filter(s => s.toLowerCase().includes(val) && !selectedSpecies.some(selected => selected.name === s))
+            .filter(s => normalize(s.toLowerCase()).includes(searchVal) && !selectedSpecies.some(selected => selected.name === s))
             .slice(0, 50);
 
         suggestions.forEach(suggestion => {
             const div = document.createElement('div');
-            const regex = new RegExp(`(${val})`, "gi");
-            div.innerHTML = suggestion.replace(regex, "<strong>$1</strong>");
+            // Accent-insensitive highlight
+            let htmlContent = suggestion;
+            if (searchVal) {
+                // Find start index of match using normalized strings
+                const matchIndex = normalize(suggestion.toLowerCase()).indexOf(searchVal);
+                if (matchIndex !== -1) {
+                    const before = suggestion.substring(0, matchIndex);
+                    const matchText = suggestion.substring(matchIndex, matchIndex + searchVal.length);
+                    const after = suggestion.substring(matchIndex + searchVal.length);
+                    htmlContent = `${before}<strong>${matchText}</strong>${after}`;
+                }
+            }
+            div.innerHTML = htmlContent;
 
             div.addEventListener('click', function () {
                 speciesSearch.value = '';
