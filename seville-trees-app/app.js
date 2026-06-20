@@ -577,7 +577,15 @@ function renderDistrictTags() {
 
 function isLiving(tree) {
     const estado = (tree.estado || '').toLowerCase();
-    if (estado.includes('tocón') || estado.includes('vacío') || estado.includes('eliminada') || estado.includes('muerto') || estado.includes('no plantar')) return false;
+    const especie = (tree.especie || '').toLowerCase();
+    
+    const deadKeywords = ['tocón', 'tocon', 'vacío', 'vacio', 'eliminada', 'muerto', 'no plantar', 'marra'];
+    
+    // Si el estado o la especie contienen alguna de estas palabras, el árbol no cuenta como vivo
+    if (deadKeywords.some(keyword => estado.includes(keyword) || especie.includes(keyword))) {
+        return false;
+    }
+    
     return true;
 }
 
