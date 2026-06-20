@@ -692,6 +692,28 @@ function renderTrees() {
                 fillOpacity: 1,
                 isFlower: false
             });
+        } else if (tree.amenazado) {
+            // Render threatened tree in Red
+            marker = L.circleMarker([tree.lat, tree.lon], {
+                radius: r * 1.5,
+                fillColor: "#ef4444", // Red
+                color: "#ffffff",
+                weight: 1,
+                stroke: true,
+                fillOpacity: 0.9,
+                isFlower: false
+            });
+        } else if (tree.protegido) {
+            // Render protected tree in Blue
+            marker = L.circleMarker([tree.lat, tree.lon], {
+                radius: r * 1.3,
+                fillColor: "#3b82f6", // Blue
+                color: "#ffffff",
+                weight: 1,
+                stroke: true,
+                fillOpacity: 0.9,
+                isFlower: false
+            });
         } else if (showFlowers && tree.flower_color) {
             marker = L.circleMarker([tree.lat, tree.lon], {
                 radius: r * 1.5,
