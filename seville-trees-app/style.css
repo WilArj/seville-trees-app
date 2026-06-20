@@ -383,7 +383,7 @@ input:checked + .slider:before {
     z-index: 1;
     /* Make sure map stays below sidebar on left */
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
 }
 
 #map {
@@ -815,56 +815,28 @@ input:checked + .slider:before {
     }
 }
 
-/* GPS Button Styles */
-.gps-btn {
-    position: absolute;
-    bottom: 2rem;
-    right: 1.5rem;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: var(--bg-panel);
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
+/* Custom GPS Control inside Leaflet */
+.gps-control-btn {
+    display: flex !important;
     justify-content: center;
-    cursor: pointer;
-    z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    align-items: center;
+    color: #475569; /* Dark slate */
+    transition: all 0.2s ease;
+    background-color: #ffffff;
 }
 
-.gps-btn:hover {
+.gps-control-btn:hover {
     color: #eab308;
-    border-color: #eab308;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    background-color: #f8fafc;
 }
 
-.gps-btn:active {
-    transform: translateY(0);
-}
-
-.gps-btn.locating {
-    animation: pulse-gps 1.5s infinite;
+.gps-control-btn.locating {
+    animation: pulse-gps-native 1.5s infinite;
     color: #eab308;
 }
 
-@keyframes pulse-gps {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.1); opacity: 0.7; }
-    100% { transform: scale(1); opacity: 1; }
+@keyframes pulse-gps-native {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
 }
-
-/* Responsividad para móviles y iPads */
-@media (max-width: 768px) {
-    .gps-btn {
-        bottom: 7rem; /* Subir el botón para esquivar la barra de navegación de Safari/Chrome y los botones de Zoom */
-        right: 1rem;
-        width: 48px;  /* Ligeramente más grande para que sea fácil de pulsar con el pulgar */
-        height: 48px;
-    }
-}
-
-

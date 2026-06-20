@@ -96,49 +96,66 @@ function initMap() {
         }));
     });
 
-    // Lógica del botón GPS
-    const gpsBtn = document.getElementById('gps-btn');
+    // Lógica del botón GPS como Control Nativo de Leaflet
     let userLocationMarker = null;
 
-    if (gpsBtn) {
-        gpsBtn.addEventListener('click', () => {
-            if (!navigator.geolocation) {
-                alert('Tu navegador no soporta geolocalización.');
-                return;
-            }
+    const GpsControl = L.Control.extend({
+        options: { position: 'bottomright' },
+        onAdd: function() {
+            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+            container.innerHTML = `
+                <a href="#" id="gps-btn" class="gps-control-btn" title="Mi ubicación">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                </a>
+            `;
             
-            gpsBtn.classList.add('locating');
+            L.DomEvent.disableClickPropagation(container);
             
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    gpsBtn.classList.remove('locating');
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    
-                    map.flyTo([lat, lng], 17, { duration: 1.5 });
-                    
-                    if (userLocationMarker) {
-                        userLocationMarker.setLatLng([lat, lng]);
-                    } else {
-                        userLocationMarker = L.circleMarker([lat, lng], {
-                            radius: 8,
-                            fillColor: "#3b82f6", // Blue color
-                            color: "#ffffff",
-                            weight: 2,
-                            opacity: 1,
-                            fillOpacity: 0.9
-                        }).addTo(map);
-                    }
-                },
-                (error) => {
-                    gpsBtn.classList.remove('locating');
-                    console.warn('Error GPS:', error);
-                    alert('No se pudo obtener la ubicación. Por favor, revisa los permisos.');
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-        });
-    }
+            const btn = container.querySelector('#gps-btn');
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (!navigator.geolocation) {
+                    alert('Tu navegador no soporta geolocalización.');
+                    return;
+                }
+                
+                btn.classList.add('locating');
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        btn.classList.remove('locating');
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        map.flyTo([lat, lng], 17, { duration: 1.5 });
+                        
+                        if (userLocationMarker) {
+                            userLocationMarker.setLatLng([lat, lng]);
+                        } else {
+                            userLocationMarker = L.circleMarker([lat, lng], {
+                                radius: 8,
+                                fillColor: "#3b82f6", // Blue color
+                                color: "#ffffff",
+                                weight: 2,
+                                opacity: 1,
+                                fillOpacity: 0.9
+                            }).addTo(map);
+                        }
+                    },
+                    (error) => {
+                        btn.classList.remove('locating');
+                        console.warn('Error GPS:', error);
+                        alert('No se pudo obtener la ubicación. Por favor, revisa los permisos.');
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            });
+            
+            return container;
+        }
+    });
+
+    map.addControl(new GpsControl());
 
     // Dynamic marker size adjustment on zoom
     map.on('zoomend', () => {
