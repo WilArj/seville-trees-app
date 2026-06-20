@@ -658,14 +658,19 @@ function renderTrees() {
             if (match) singularName = match.name;
         }
 
+        const wikipediaUrl = tree.especie ? `https://es.wikipedia.org/w/index.php?search=${encodeURIComponent(tree.especie)}&title=Especial:Buscar` : '#';
+        const speciesLink = tree.especie 
+            ? `<a href="${wikipediaUrl}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3);" title="Buscar en Wikipedia">${tree.especie}</a>`
+            : 'Desconocida';
+
         const titleText = isSingular 
-            ? `Árbol Singular: ${singularName || tree.especie || 'Singular'}` 
-            : `${tree.especie || 'Desconocida'} ${tree.amenazado ? '⚠️' : ''} ${tree.protegido && !tree.amenazado ? '🛡️' : ''}`;
+            ? `Árbol Singular: ${singularName || speciesLink}` 
+            : `${speciesLink} ${tree.amenazado ? '⚠️' : ''} ${tree.protegido && !tree.amenazado ? '🛡️' : ''}`;
 
         const popupContent = `
             <div class="tree-popup">
                 <h3 style="${isSingular ? 'color: #ca8a04; font-weight: 700;' : ''}">${titleText}</h3>
-                ${isSingular ? `<p style="color: #eab308; font-weight: 600;">Especie: ${tree.especie || '-'}</p>` : ''}
+                ${isSingular ? `<p style="color: #eab308; font-weight: 600;">Especie: ${speciesLink}</p>` : ''}
                 <p><strong>Distrito:</strong> ${tree.distrito || '-'}</p>
                 <p><strong>Barrio:</strong> ${tree.barrio || '-'}</p>
                 <p><strong>Altura:</strong> ${tree.altura ? tree.altura + 'm' : '-'}</p>
