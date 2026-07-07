@@ -1167,21 +1167,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Lógica para colapsar el menú lateral (Responsive)
     const toggleBtn = document.getElementById('toggle-sidebar-btn');
-    const toggleIcon = document.getElementById('sidebar-toggle-icon');
     if (toggleBtn) {
         toggleBtn.addEventListener('click', () => {
             document.body.classList.toggle('sidebar-collapsed');
             
-            if (toggleIcon) {
-                if (document.body.classList.contains('sidebar-collapsed')) {
-                    toggleBtn.title = "Mostrar Menú";
-                    toggleIcon.setAttribute('data-lucide', 'chevron-right');
-                } else {
-                    toggleBtn.title = "Ocultar Menú";
-                    toggleIcon.setAttribute('data-lucide', 'chevron-left');
-                }
-                lucide.createIcons();
+            if (document.body.classList.contains('sidebar-collapsed')) {
+                toggleBtn.title = "Mostrar Menú";
+                toggleBtn.innerHTML = '<i data-lucide="chevron-right"></i>';
+            } else {
+                toggleBtn.title = "Ocultar Menú";
+                toggleBtn.innerHTML = '<i data-lucide="chevron-left"></i>';
             }
+            lucide.createIcons();
 
             // Recalcular tamaño del mapa tras la animación
             setTimeout(() => {
