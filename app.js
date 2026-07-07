@@ -1216,7 +1216,14 @@ function openBottomSheet(tree, isSingular, speciesLink) {
     const threat = document.getElementById('sheet-threat');
 
     title.innerHTML = isSingular ? `⭐ ${tree.nombre_comun || tree.especie}` : speciesLink;
-    subtitle.innerHTML = tree.familia ? `Familia: ${tree.familia}` : (tree.especie || 'Desconocida');
+    
+    if (isSingular) {
+        subtitle.innerHTML = `Especie: ${speciesLink}`;
+        subtitle.style.display = 'block';
+    } else {
+        subtitle.innerHTML = tree.familia ? `Familia: ${tree.familia}` : (tree.nombre_comun || '');
+        subtitle.style.display = subtitle.innerHTML ? 'block' : 'none';
+    }
 
     // Build Badges
     badges.innerHTML = '';
