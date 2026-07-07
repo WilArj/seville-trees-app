@@ -624,7 +624,7 @@ function renderTrees() {
             if (match) singularName = match.name;
         }
 
-        const speciesName = (tree.especie === "NO ASIGNADO" || tree.especie === "S/D") 
+        const speciesName = (!tree.especie || tree.especie === "NO ASIGNADO" || tree.especie === "S/D") 
             ? "Especie desconocida" 
             : tree.especie;
             
