@@ -83,7 +83,7 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 1000;
+    z-index: 1500;
     border-right: 1px solid var(--border);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -423,7 +423,7 @@ input:checked + .slider:before {
 /* ------------------- FLOATING ACTION BAR ------------------- */
 .fab-container {
     position: absolute;
-    bottom: 2rem;
+    top: 2rem;
     right: 2rem;
     z-index: 1000;
     border-radius: 30px;
