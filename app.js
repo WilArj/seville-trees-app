@@ -666,8 +666,8 @@ function renderTrees() {
         }
 
         // Scale down size by 20%
-        let r = baseRadius * 0.8;
-        if (isSingular) r = baseRadius * 1.5 * 0.8;
+        let finalRadius = r * 0.8;
+        if (isSingular) finalRadius = r * 1.5 * 0.8;
 
         let marker;
         // Determine fill color
@@ -681,7 +681,7 @@ function renderTrees() {
 
         if (showFlowers && tree.flower_color && !isSingular && !tree.protegido && !tree.amenazado) {
             marker = L.circleMarker([tree.lat, tree.lon], {
-                radius: r * 1.5,
+                radius: finalRadius * 1.5,
                 fillColor: tree.flower_color,
                 stroke: false,
                 fillOpacity: 0.9,
@@ -689,7 +689,7 @@ function renderTrees() {
             });
         } else {
             marker = L.circleMarker([tree.lat, tree.lon], {
-                radius: r,
+                radius: finalRadius,
                 fillColor: fillColor,
                 color: "#ffffff",
                 weight: (isSingular || tree.protegido || tree.amenazado) ? 1 : 0,
