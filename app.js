@@ -8,13 +8,8 @@ const protectedFilter = document.getElementById('protected-filter');
 const singularFilter = document.getElementById('singular-filter');
 const statTotal = document.getElementById('stat-total');
 const statSpecies = document.getElementById('stat-species');
-const statHeight = document.getElementById('stat-height');
 const loader = document.getElementById('loader');
 const loaderText = document.getElementById('loader-text');
-const visibleTreesList = document.getElementById('visible-trees-list');
-
-// Panels
-const listPanel = document.getElementById('list-panel');
 
 // Mode selectors
 const modeGlobal = document.getElementById('mode-global');
@@ -730,142 +725,13 @@ function renderTrees() {
         if (t.especie && t.especie !== "NO ASIGNADO" && t.especie !== "S/D") {
             uniqueSpecies.add(t.especie);
         }
-        if (t.altura && !isNaN(parseFloat(t.altura))) {
-            totalHeight += parseFloat(t.altura);
-            heightCount++;
-        }
     });
     
     if (statSpecies) {
         statSpecies.textContent = uniqueSpecies.size.toLocaleString('es-ES');
     }
-    if (statHeight) {
-        const avgHeight = heightCount > 0 ? (totalHeight / heightCount).toFixed(1) : '-';
-        statHeight.textContent = avgHeight !== '-' ? `${avgHeight} m` : '-';
-    }
-
-    // Resetear lista sidebar
-    visibleTreesList.innerHTML = '';
-    currentListIndex = 0;
-    renderTreeListChunk();
 }
 
-// Pintar fragmento virtualizado en la lista del sidebar
-function renderTreeListChunk() {
-    const singularIndices = new Set(singularTrees.filter(t => t.idx !== null && t.idx !== undefined).map(t => t.idx));
-    const singularCoords = new Set(singularTrees.filter(t => t.idx === null && t.lat && t.lon).map(t => `${Number(t.lat).toFixed(6)},${Number(t.lon).toFixed(6)}`));
-
-    const end = Math.min(currentListIndex + CHUNK_SIZE, currentFilteredTrees.length);
-    for (let i = currentListIndex; i < end; i++) {
-        const tree = currentFilteredTrees[i];
-        const marker = currentMarkers[i];
-
-        const isSingular = (tree.idx !== null && tree.idx !== undefined && singularIndices.has(tree.idx)) ||
-                           (tree.lat && tree.lon && singularCoords.has(`${Number(tree.lat).toFixed(6)},${Number(tree.lon).toFixed(6)}`)) ||
-                           (tree.singular === true);
-
-        let singularName = '';
-        if (isSingular) {
-            const match = singularTrees.find(t => 
-                (t.idx !== null && t.idx !== undefined && t.idx === tree.idx) ||
-                (t.lat && t.lon && Number(t.lat).toFixed(6) === Number(tree.lat).toFixed(6) && Number(t.lon).toFixed(6) === Number(tree.lon).toFixed(6))
-            );
-            if (match) singularName = match.name;
-        }
-
-        const item = document.createElement('div');
-        item.className = 'tree-item';
-        if (isSingular) {
-            item.style.borderColor = 'rgba(234, 179, 8, 0.4)';
-            item.style.background = 'rgba(234, 179, 8, 0.05)';
-        }
-
-        const title = document.createElement('div');
-        title.className = 'tree-item-title';
-        if (isSingular) {
-            title.innerHTML = `${singularName || tree.especie || 'Singular'}`;
-            title.style.color = '#eab308';
-        } else {
-            title.innerHTML = `${tree.especie || 'Desconocida'} ${tree.amenazado ? '⚠️' : ''} ${tree.protegido && !tree.amenazado ? '🛡️' : ''}`;
-        }
-
-        const subtitle = document.createElement('div');
-        subtitle.className = 'tree-item-subtitle';
-        subtitle.textContent = `[ID: ${tree.idx || '-'}] ${tree.barrio || '-'}, ${tree.distrito || '-'}`;
-
-        item.appendChild(title);
-        item.appendChild(subtitle);
-
-        // Hover events para destacar el marcador
-        item.addEventListener('mouseenter', () => {
-            if (!marker) return;
-            currentMarkers.forEach(m => {
-                if (!m) return;
-                if (m === marker) {
-                    if (m.setStyle) {
-                        m.setStyle({ fillColor: '#FDE047', color: '#EAB308', fillOpacity: 1, radius: (m.options.radius || 4) + 3 });
-                    }
-                    if (m._icon) m._icon.style.opacity = '1';
-                    if (m._icon) m._icon.style.transform += ' scale(1.5)';
-                } else {
-                    if (m.setStyle) {
-                        m.setStyle({ fillOpacity: 0.15, opacity: 0.15 });
-                    }
-                    if (m._icon) m._icon.style.opacity = '0.2';
-                }
-            });
-        });
-
-        item.addEventListener('mouseleave', () => {
-            currentMarkers.forEach(m => {
-                if (!m) return;
-                if (m.setStyle) m.setStyle(m._originalOptions);
-                if (m._icon) {
-                    m._icon.style.opacity = m._originalIconOpacity || '1';
-                    m._icon.style.transform = m._icon.style.transform.replace(' scale(1.5)', '');
-                }
-            });
-        });
-
-        // Click para enfocar
-        item.addEventListener('click', () => {
-            if (tree.lat && tree.lon && marker) {
-                // Flag para map click
-                window.suppressMapClick = true;
-                setTimeout(() => window.suppressMapClick = false, 100);
-
-                const doFlyAndOpen = () => {
-                    openBottomSheet(tree, isSingular, speciesLink, marker);
-                    // Fly to tree but keeping bottom sheet area into account
-                    const mapHeight = map.getSize().y;
-                    const offset = mapHeight * 0.25; // center a bit higher
-                    const point = map.project([tree.lat, tree.lon], 18);
-                    point.y += offset;
-                    const latlng = map.unproject(point, 18);
-                    map.flyTo(latlng, 18, { duration: 0.5 });
-                };
-
-                if (currentMode === 'global' && markerLayerGroup) {
-                    try { markerLayerGroup.zoomToShowLayer(marker); } catch(e) {}
-                }
-                
-                setTimeout(doFlyAndOpen, 50);
-                
-                // On mobile, auto-collapse sidebar
-                if (window.innerWidth <= 768) {
-                    document.body.classList.add('sidebar-collapsed');
-                    const btn = document.getElementById('toggle-sidebar-btn');
-                    if (btn) btn.innerHTML = '<i data-lucide="chevron-right"></i>';
-                    lucide.createIcons();
-                }
-            }
-        });
-
-        visibleTreesList.appendChild(item);
-    }
-
-    currentListIndex = end;
-}
 
 function hasFlowerColor(speciesName) {
     const dataToCheck = fullTreesCache || allTrees;
@@ -984,15 +850,6 @@ function setupEvents() {
     document.addEventListener('click', function (e) {
         if (e.target !== speciesSearch && e.target !== autocompleteList) {
             autocompleteList.classList.add('hidden');
-        }
-    });
-
-    // Scroll infinito lista
-    visibleTreesList.addEventListener('scroll', function () {
-        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 50) {
-            if (currentListIndex < currentFilteredTrees.length) {
-                renderTreeListChunk();
-            }
         }
     });
 
