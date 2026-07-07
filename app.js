@@ -1044,37 +1044,39 @@ function setupEvents() {
                         await enterModeGlobal();
                     }
                     
-                    // Volar hacia el árbol
-                    map.flyTo([tree.lat, tree.lon], 20, { duration: 1.5 });
+                    // Flag para map click
+                    window.suppressMapClick = true;
+                    setTimeout(() => window.suppressMapClick = false, 100);
+
+                    // Buscar el marcador correspondiente (debe estar visible según los filtros)
+                    const markerIndex = currentFilteredTrees.findIndex(t => t.idx === tree.idx);
                     
-                    // Esperar a que termine el vuelo y abrir el popup
-                    map.once('moveend', () => {
-                        // Buscar el marcador correspondiente (debe estar visible según los filtros)
-                        const markerIndex = currentFilteredTrees.findIndex(t => t.idx === tree.idx);
-                        
-                        if (markerIndex !== -1 && currentMarkers[markerIndex]) {
-                            let isSingular = singularTreesNames.has(tree.nombre_comun);
-                            let speciesName = tree.especie || 'Desconocida';
-                            let speciesLink = tree.url_especie 
-                                ? `<a href="${tree.url_especie}" target="_blank" title="Ver en Wikipedia" class="species-link">${speciesName}</a>`
-                                : speciesName;
+                    if (markerIndex !== -1 && currentMarkers[markerIndex]) {
+                        let isSingular = singularTreesNames.has(tree.nombre_comun);
+                        let speciesName = tree.especie || 'Desconocida';
+                        let speciesLink = tree.url_especie 
+                            ? `<a href="${tree.url_especie}" target="_blank" title="Ver en Wikipedia" class="species-link">${speciesName}</a>`
+                            : speciesName;
 
-                            // Flag para map click
-                            window.suppressMapClick = true;
-                            setTimeout(() => window.suppressMapClick = false, 100);
-
-                            // En caso de que haya clustering, hay que revelar el marcador primero
-                            if (currentMode === 'global' && markerLayerGroup) {
-                                markerLayerGroup.zoomToShowLayer(currentMarkers[markerIndex], () => {
-                                    openBottomSheet(tree, isSingular, speciesLink, currentMarkers[markerIndex]);
-                                });
-                            } else {
+                        // En caso de que haya clustering, hay que revelar el marcador primero
+                        if (currentMode === 'global' && markerLayerGroup) {
+                            markerLayerGroup.zoomToShowLayer(currentMarkers[markerIndex], () => {
                                 openBottomSheet(tree, isSingular, speciesLink, currentMarkers[markerIndex]);
-                            }
+                            });
                         } else {
-                            alert(`El árbol ${tree.idx} se encuentra aquí, pero actualmente está oculto por tus filtros.`);
+                            openBottomSheet(tree, isSingular, speciesLink, currentMarkers[markerIndex]);
                         }
-                    });
+                    } else {
+                        alert(`El árbol ${tree.idx} se encuentra aquí, pero actualmente está oculto por tus filtros.`);
+                    }
+
+                    // Volar hacia el árbol
+                    const mapHeight = map.getSize().y;
+                    const offset = mapHeight * 0.25; // center a bit higher
+                    const point = map.project([tree.lat, tree.lon], 20);
+                    point.y += offset;
+                    const latlng = map.unproject(point, 20);
+                    map.flyTo(latlng, 20, { duration: 1.0 });
                 }
             } catch (err) {
                 console.error(err);
@@ -1249,6 +1251,7 @@ let currentlySelectedMarker = null;
 function resetSelectedMarker() {
     if (currentlySelectedMarker && currentlySelectedMarker.setStyle) {
         currentlySelectedMarker.setStyle({
+            stroke: currentlySelectedMarker.options.originalWeight > 0,
             weight: currentlySelectedMarker.options.originalWeight !== undefined ? currentlySelectedMarker.options.originalWeight : 0,
             color: currentlySelectedMarker.options.originalColor || "#ffffff"
         });
@@ -1264,7 +1267,8 @@ function openBottomSheet(tree, isSingular, speciesLink, marker) {
             marker.options.originalWeight = marker.options.weight;
             marker.options.originalColor = marker.options.color;
             marker.setStyle({
-                weight: 3,
+                stroke: true,
+                weight: 4,
                 color: "#ffffff"
             });
             if (marker.bringToFront) {
