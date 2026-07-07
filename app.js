@@ -1132,10 +1132,8 @@ function openBottomSheet(tree, isSingular, speciesLink, marker) {
         const loc = document.getElementById('sheet-location');
         const height = document.getElementById('sheet-height');
         const status = document.getElementById('sheet-status');
-        const threatContainer = document.getElementById('sheet-threat-container');
-        const threat = document.getElementById('sheet-threat');
 
-        title.innerHTML = isSingular ? `⭐ ${tree.nombre_comun || tree.especie}` : speciesLink;
+        title.innerHTML = isSingular ? (tree.nombre_comun || tree.especie || 'Árbol Singular') : speciesLink;
         
         if (isSingular) {
             subtitle.innerHTML = `Especie: ${speciesLink}`;
@@ -1145,23 +1143,48 @@ function openBottomSheet(tree, isSingular, speciesLink, marker) {
             subtitle.style.display = subtitle.innerHTML ? 'block' : 'none';
         }
 
-        // Build Badges
-        badges.innerHTML = '';
-        if (tree.idx) badges.innerHTML += `<span class="tag" style="background: rgba(255,255,255,0.08); color: var(--text-muted);"># ${tree.idx}</span>`;
-        if (isSingular) badges.innerHTML += `<span class="tag" style="background: rgba(251,191,36,0.2); color: #FBBF24;">Singular</span>`;
-        if (tree.protegido) badges.innerHTML += `<span class="tag" style="background: rgba(59,130,246,0.2); color: #3B82F6;">Protegido</span>`;
-        if (tree.tipologia) badges.innerHTML += `<span class="tag">${tree.tipologia}</span>`;
+        // Build Badges in multiple lines
+        let html = '<div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">';
+        
+        // Line 1: ID
+        if (tree.idx) {
+            html += `<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <span class="tag" style="background: rgba(255,255,255,0.08); color: var(--text-muted);"># ${tree.idx}</span>
+                     </div>`;
+        }
+        
+        // Line 2: Status
+        let statusBadges = [];
+        if (isSingular) {
+            statusBadges.push(`<span class="tag" style="background: rgba(251,191,36,0.2); color: #FBBF24;">Singular</span>`);
+        }
+        if (tree.protegido) {
+            let protText = tree.figura_proteccion ? `Protegido (${tree.figura_proteccion})` : `Protegido`;
+            statusBadges.push(`<span class="tag" style="background: rgba(59,130,246,0.2); color: #3B82F6;">${protText}</span>`);
+        }
+        if (tree.amenazado) {
+            let threatText = tree.categoria_amenaza ? `Amenazado (${tree.categoria_amenaza})` : `Amenazado`;
+            statusBadges.push(`<span class="tag" style="background: rgba(239,68,68,0.2); color: #EF4444;">${threatText}</span>`);
+        }
+        if (statusBadges.length > 0) {
+            html += `<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">${statusBadges.join('')}</div>`;
+        }
+        
+        // Line 3: Type
+        if (tree.tipologia) {
+            html += `<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <span class="tag" style="background: rgba(255,255,255,0.1); color: var(--text-main);">${tree.tipologia}</span>
+                     </div>`;
+        }
+        
+        html += '</div>';
+        badges.innerHTML = html;
         
         loc.textContent = `${tree.distrito || 'Sin distrito'}, ${tree.barrio || 'Sin barrio'}`;
         height.textContent = tree.altura ? `${tree.altura} m` : 'Desconocida';
         status.textContent = tree.estado || 'Normal';
 
-        if (tree.categoria_amenaza) {
-            threatContainer.classList.remove('hidden');
-            threat.textContent = tree.categoria_amenaza;
-        } else {
-            threatContainer.classList.add('hidden');
-        }
+
 
         sheet.classList.remove('hidden');
     } catch (err) {
