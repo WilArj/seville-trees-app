@@ -700,8 +700,8 @@ function renderTrees() {
         }
 
         marker.on('click', (e) => {
-            L.DomEvent.stopPropagation(e); // Prevent map click
-            openBottomSheet(tree, isSingular, speciesLink);
+            if (e && e.originalEvent) L.DomEvent.stopPropagation(e.originalEvent); // Prevent map click
+            openBottomSheet(tree, isSingular, speciesLink, marker);
             
             // Fly to tree but keeping bottom sheet area into account
             // On mobile we might want to offset the center
@@ -1033,13 +1033,19 @@ function setupEvents() {
                         const markerIndex = currentFilteredTrees.findIndex(t => t.idx === tree.idx);
                         
                         if (markerIndex !== -1 && currentMarkers[markerIndex]) {
+                            let isSingular = singularTreesNames.has(tree.nombre_comun);
+                            let speciesName = tree.especie || 'Desconocida';
+                            let speciesLink = tree.url_especie 
+                                ? `<a href="${tree.url_especie}" target="_blank" title="Ver en Wikipedia" class="species-link">${speciesName}</a>`
+                                : speciesName;
+
                             // En caso de que haya clustering, hay que revelar el marcador primero
                             if (currentMode === 'global' && markerLayerGroup) {
                                 markerLayerGroup.zoomToShowLayer(currentMarkers[markerIndex], () => {
-                                    currentMarkers[markerIndex].fire('click');
+                                    openBottomSheet(tree, isSingular, speciesLink, currentMarkers[markerIndex]);
                                 });
                             } else {
-                                currentMarkers[markerIndex].fire('click');
+                                openBottomSheet(tree, isSingular, speciesLink, currentMarkers[markerIndex]);
                             }
                         } else {
                             alert(`El árbol ${tree.idx} se encuentra aquí, pero actualmente está oculto por tus filtros.`);
@@ -1214,7 +1220,31 @@ document.addEventListener('DOMContentLoaded', () => {
 // NEW UI LOGIC (Apple Maps Aesthetic)
 // ==========================================
 
-function openBottomSheet(tree, isSingular, speciesLink) {
+let currentlySelectedMarker = null;
+
+function resetSelectedMarker() {
+    if (currentlySelectedMarker && currentlySelectedMarker.setStyle) {
+        currentlySelectedMarker.setStyle({
+            weight: currentlySelectedMarker.options.originalWeight !== undefined ? currentlySelectedMarker.options.originalWeight : 0,
+            color: currentlySelectedMarker.options.originalColor || "#ffffff"
+        });
+        currentlySelectedMarker = null;
+    }
+}
+
+function openBottomSheet(tree, isSingular, speciesLink, marker) {
+    resetSelectedMarker();
+    if (marker && marker.setStyle) {
+        currentlySelectedMarker = marker;
+        marker.options.originalWeight = marker.options.weight;
+        marker.options.originalColor = marker.options.color;
+        marker.setStyle({
+            weight: 3,
+            color: "#ffffff"
+        });
+        marker.bringToFront();
+    }
+
     const sheet = document.getElementById('tree-bottom-sheet');
     const title = document.getElementById('sheet-title');
     const subtitle = document.getElementById('sheet-subtitle');
@@ -1275,8 +1305,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeSheetBtn) {
         closeSheetBtn.addEventListener('click', () => {
             document.getElementById('tree-bottom-sheet').classList.add('hidden');
+            resetSelectedMarker();
         });
     }
+
+    // Also close sheet and reset marker when map is clicked
+    map.on('click', () => {
+        document.getElementById('tree-bottom-sheet').classList.add('hidden');
+        resetSelectedMarker();
+    });
 
     // FAB Buttons
     const fabHome = document.getElementById('fab-home');
