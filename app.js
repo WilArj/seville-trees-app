@@ -1310,14 +1310,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (window.userLocationMarker) {
                         window.userLocationMarker.setLatLng([lat, lng]);
                     } else {
-                        window.userLocationMarker = L.circleMarker([lat, lng], {
-                            radius: 8,
-                            fillColor: "#007AFF", // iOS Blue
-                            color: "#FFFFFF",
-                            weight: 2,
-                            opacity: 1,
-                            fillOpacity: 1,
-                            className: 'pulse-marker'
+                        window.userLocationMarker = L.marker([lat, lng], {
+                            icon: L.divIcon({
+                                className: 'user-location-custom',
+                                html: '<div class="gps-pulse"></div><div class="gps-core"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg></div>',
+                                iconSize: [28, 28],
+                                iconAnchor: [14, 14]
+                            })
                         }).addTo(map);
                     }
                 },
