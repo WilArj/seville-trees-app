@@ -702,16 +702,6 @@ function renderTrees() {
             setTimeout(() => window.suppressMapClick = false, 100);
 
             openBottomSheet(tree, isSingular, speciesLink, marker);
-            
-            // Fly to tree but keeping bottom sheet area into account
-            // On mobile we might want to offset the center
-            const mapHeight = map.getSize().y;
-            const offset = mapHeight * 0.25; // center a bit higher
-            const point = map.project([tree.lat, tree.lon], 18);
-            point.y += offset;
-            const latlng = map.unproject(point, 18);
-            
-            map.flyTo(latlng, 18, { duration: 0.5 });
         });
 
         marker._originalOptions = { ...marker.options };
@@ -1052,7 +1042,8 @@ function setupEvents() {
                     const markerIndex = currentFilteredTrees.findIndex(t => t.idx === tree.idx);
                     
                     if (markerIndex !== -1 && currentMarkers[markerIndex]) {
-                        let isSingular = singularTreesNames.has(tree.nombre_comun);
+                        let isSingular = (tree.idx !== null && tree.idx !== undefined && singularIndices.has(tree.idx)) || 
+                                         (tree.nombre_comun && singularTreesByCommonName.has(tree.nombre_comun));
                         let speciesName = tree.especie || 'Desconocida';
                         let speciesLink = tree.url_especie 
                             ? `<a href="${tree.url_especie}" target="_blank" title="Ver en Wikipedia" class="species-link">${speciesName}</a>`
@@ -1298,6 +1289,7 @@ function openBottomSheet(tree, isSingular, speciesLink, marker) {
 
         // Build Badges
         badges.innerHTML = '';
+        if (tree.idx) badges.innerHTML += `<span class="tag" style="background: rgba(255,255,255,0.08); color: var(--text-muted);"># ${tree.idx}</span>`;
         if (isSingular) badges.innerHTML += `<span class="tag" style="background: rgba(251,191,36,0.2); color: #FBBF24;">Singular</span>`;
         if (tree.protegido) badges.innerHTML += `<span class="tag" style="background: rgba(59,130,246,0.2); color: #3B82F6;">Protegido</span>`;
         if (tree.tipologia) badges.innerHTML += `<span class="tag">${tree.tipologia}</span>`;
