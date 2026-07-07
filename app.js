@@ -834,21 +834,22 @@ function renderTreeListChunk() {
                 window.suppressMapClick = true;
                 setTimeout(() => window.suppressMapClick = false, 100);
 
-                if (currentMode === 'global' && markerLayerGroup) {
-                    markerLayerGroup.zoomToShowLayer(marker, () => {
-                        openBottomSheet(tree, isSingular, speciesLink, marker);
-                    });
-                } else {
+                const doFlyAndOpen = () => {
                     openBottomSheet(tree, isSingular, speciesLink, marker);
+                    // Fly to tree but keeping bottom sheet area into account
+                    const mapHeight = map.getSize().y;
+                    const offset = mapHeight * 0.25; // center a bit higher
+                    const point = map.project([tree.lat, tree.lon], 18);
+                    point.y += offset;
+                    const latlng = map.unproject(point, 18);
+                    map.flyTo(latlng, 18, { duration: 0.5 });
+                };
+
+                if (currentMode === 'global' && markerLayerGroup) {
+                    markerLayerGroup.zoomToShowLayer(marker, doFlyAndOpen);
+                } else {
+                    doFlyAndOpen();
                 }
-                
-                // Fly to tree but keeping bottom sheet area into account
-                const mapHeight = map.getSize().y;
-                const offset = mapHeight * 0.25; // center a bit higher
-                const point = map.project([tree.lat, tree.lon], 18);
-                point.y += offset;
-                const latlng = map.unproject(point, 18);
-                map.flyTo(latlng, 18, { duration: 0.5 });
                 
                 // On mobile, auto-collapse sidebar
                 if (window.innerWidth <= 768) {
@@ -1048,25 +1049,26 @@ function setupEvents() {
                             ? `<a href="${tree.url_especie}" target="_blank" title="Ver en Wikipedia" class="species-link">${speciesName}</a>`
                             : speciesName;
 
+                        const doFlyAndOpen = () => {
+                            openBottomSheet(tree, isSingular, speciesLink, currentMarkers[markerIndex]);
+                            // Volar hacia el árbol con offset para la tarjeta
+                            const mapHeight = map.getSize().y;
+                            const offset = mapHeight * 0.25;
+                            const point = map.project([tree.lat, tree.lon], 20);
+                            point.y += offset;
+                            const latlng = map.unproject(point, 20);
+                            map.flyTo(latlng, 20, { duration: 1.0 });
+                        };
+
                         // En caso de que haya clustering, hay que revelar el marcador primero
                         if (currentMode === 'global' && markerLayerGroup) {
-                            markerLayerGroup.zoomToShowLayer(currentMarkers[markerIndex], () => {
-                                openBottomSheet(tree, isSingular, speciesLink, currentMarkers[markerIndex]);
-                            });
+                            markerLayerGroup.zoomToShowLayer(currentMarkers[markerIndex], doFlyAndOpen);
                         } else {
-                            openBottomSheet(tree, isSingular, speciesLink, currentMarkers[markerIndex]);
+                            doFlyAndOpen();
                         }
                     } else {
                         alert(`El árbol ${tree.idx} se encuentra aquí, pero actualmente está oculto por tus filtros.`);
                     }
-
-                    // Volar hacia el árbol
-                    const mapHeight = map.getSize().y;
-                    const offset = mapHeight * 0.25; // center a bit higher
-                    const point = map.project([tree.lat, tree.lon], 20);
-                    point.y += offset;
-                    const latlng = map.unproject(point, 20);
-                    map.flyTo(latlng, 20, { duration: 1.0 });
                 }
             } catch (err) {
                 console.error(err);
