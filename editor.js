@@ -24,8 +24,7 @@ const inputSingular = document.getElementById('input-singular');
 const btnDelete = document.getElementById('btn-delete');
 const btnClear = document.getElementById('btn-clear');
 const btnSaveAll = document.getElementById('btn-save-all');
-const singularTreesList = document.getElementById('singular-trees-list');
-const countRegistered = document.getElementById('count-registered');
+
 const selectedIndicator = document.getElementById('selected-indicator');
 const loader = document.getElementById('loader');
 const loaderText = document.getElementById('loader-text');
@@ -42,10 +41,7 @@ const editModeControls = document.getElementById('edit-mode-controls');
 const loadedDistrictsTags = document.getElementById('loaded-districts-tags');
 const editorDescription = document.getElementById('editor-description');
 
-// Viewport-based List Chunk variables
-let currentFilteredTrees = [];
-let currentListIndex = 0;
-const CHUNK_SIZE = 100;
+
 
 // Track modified districts to sync only what changed
 const modifiedDistricts = new Set();
@@ -934,60 +930,7 @@ async function saveAllChanges() {
     }
 }
 
-// Sidebar list management
-function updateList(trees) {
-    singularTreesList.innerHTML = '';
-    currentListIndex = 0;
-    currentFilteredTrees = trees;
-    countRegistered.textContent = trees.length.toLocaleString();
-    
-    if (editorMode === 'menu') return;
-    
-    const zoom = map.getZoom();
-    if (zoom < 14) {
-        singularTreesList.innerHTML = '<span class="no-tags-placeholder">Acerca el mapa para ver la lista de árboles. (Zoom mínimo: 14)</span>';
-        return;
-    }
-    if (trees.length === 0) {
-        singularTreesList.innerHTML = '<span class="no-tags-placeholder">Ningún árbol visible en esta área.</span>';
-        return;
-    }
-    
-    renderTreeListChunk();
-}
-
-function renderTreeListChunk() {
-    const end = Math.min(currentListIndex + CHUNK_SIZE, currentFilteredTrees.length);
-    for (let i = currentListIndex; i < end; i++) {
-        const tree = currentFilteredTrees[i];
-        const item = document.createElement('div');
-        
-        item.className = `tree-item ${tree.idx === activeTreeIdx ? 'active' : ''}`;
-        if (tree.idx === activeTreeIdx) {
-            item.style.borderColor = '#22c55e';
-            item.style.background = 'rgba(34, 197, 94, 0.1)';
-        }
-        
-        const title = document.createElement('div');
-        title.className = 'tree-item-title';
-        title.innerHTML = `${tree.singular ? '⭐ ' : '🌳 '}${tree.especie || 'Sin especie'}`;
-        
-        const subtitle = document.createElement('div');
-        subtitle.className = 'tree-item-subtitle';
-        subtitle.textContent = `${tree.distrito || 'Sin distrito'} (${tree.lat.toFixed(5)}, ${tree.lon.toFixed(5)})`;
-        
-        item.appendChild(title);
-        item.appendChild(subtitle);
-        
-        item.addEventListener('click', () => {
-            selectTreeByIdx(tree.idx);
-            map.setView([tree.lat, tree.lon], 18);
-        });
-        
-        singularTreesList.appendChild(item);
-    }
-    currentListIndex = end;
-}
+// Sidebar list management removed
 
 function setupEvents() {
     btnModeCreate.addEventListener('click', () => switchMode('create'));
@@ -1015,9 +958,7 @@ function setupEvents() {
                 
                 if (tree.singular) tree.flower_color = "#EAB308";
                 else if (tree.flower_color === "#EAB308") delete tree.flower_color;
-                
-                updateList(currentFilteredTrees);
-            }
+
         }
     };
     
@@ -1028,13 +969,6 @@ function setupEvents() {
     btnClear.addEventListener('click', clearForm);
     btnSaveAll.addEventListener('click', saveAllChanges);
 
-    singularTreesList.parentElement.addEventListener('scroll', function () {
-        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 50) {
-            if (currentListIndex < currentFilteredTrees.length) {
-                renderTreeListChunk();
-            }
-        }
-    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
