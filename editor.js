@@ -282,10 +282,6 @@ function initMap() {
         const lon = parseFloat(e.latlng.lng.toFixed(6));
         selectNewPosition(lat, lon);
     });
-
-    map.on('moveend', () => {
-        updateVisibleMarkers();
-    });
 }
 
 // Load metadata lists
@@ -300,7 +296,7 @@ async function loadInitialMetadata() {
         if (boundResp.ok) {
             districtBoundaries = await boundResp.json();
             if (editorMode !== 'menu') {
-                drawDistrictBoundaries();
+                // drawDistrictBoundaries();
             }
         }
     } catch (e) {
@@ -374,8 +370,7 @@ async function loadDistrictByName(districtName, filename) {
             loadedDistrictsData[districtName] = await response.json();
             computeLoadedDistrictTrees();
             renderDistrictTags();
-            drawDistrictBoundaries(); // Redraw to update colors
-            updateVisibleMarkers();
+            // drawDistrictBoundaries();
         } else {
             throw new Error(`No se pudo cargar el archivo data/${filename}`);
         }
@@ -399,8 +394,8 @@ function unloadDistrict(districtName) {
     }
     computeLoadedDistrictTrees();
     renderDistrictTags();
-    drawDistrictBoundaries();
-    updateVisibleMarkers();
+    // drawDistrictBoundaries();
+    // updateVisibleMarkers();
 }
 
 function renderDistrictTags() {
@@ -496,8 +491,6 @@ function switchMode(mode) {
         map.keyboard.enable();
         if (map.tap) map.tap.enable();
         
-        drawDistrictBoundaries();
-        
         if (mode === 'create') {
             activeEditorView.classList.remove('hidden');
             editorDescription.textContent = 'Haz clic en cualquier parte del mapa para añadir un árbol nuevo.';
@@ -507,13 +500,12 @@ function switchMode(mode) {
             btnDelete.classList.add('hidden');
             
             enableCreateModeGuidance();
-            updateList([]);
         } else if (mode === 'edit') {
-            disableCreateModeGuidance();
             activeEditorView.classList.remove('hidden');
-            editModeControls.classList.remove('hidden');
-            renderDistrictTags();
-            editorDescription.textContent = 'Haz clic en un distrito para cargar sus árboles y editarlos.';
+            editModeControls.classList.add('hidden');
+            editorDescription.textContent = 'Haz clic en un árbol del mapa para editarlo.';
+            
+            enableCreateModeGuidance();
         }
     }
 }
@@ -564,11 +556,20 @@ async function enableCreateModeGuidance() {
                 color: "#FFFFFF",
                 weight: 1,
                 fillOpacity: 0.5,
-                interactive: false
+                interactive: true
             });
+            
+            marker.on('click', (e) => {
+                if (e && e.originalEvent) L.DomEvent.stop(e.originalEvent);
+                if (editorMode === 'edit') {
+                    selectTreeByIdx(tree.idx);
+                }
+            });
+            
             globalTreesClusterGroup.addLayer(marker);
         });
         
+        loadedDistrictTrees = fullTreesCache;
         map.addLayer(globalTreesClusterGroup);
     } catch(e) {
         console.error(e);
@@ -583,78 +584,6 @@ function disableCreateModeGuidance() {
     }
 }
 
-// Update Map markers based on viewport bounds
-function updateVisibleMarkers() {
-    if ((editorMode !== 'edit' && editorMode !== 'create') || loadedDistrictTrees.length === 0) {
-        if (canvasLayerGroup) {
-            map.removeLayer(canvasLayerGroup);
-            canvasLayerGroup = null;
-        }
-        updateList([]);
-        return;
-    }
-    
-    const zoom = map.getZoom();
-    const bounds = map.getBounds();
-    
-    if (canvasLayerGroup) {
-        map.removeLayer(canvasLayerGroup);
-    }
-    canvasLayerGroup = L.layerGroup();
-    
-    if (zoom >= 14) {
-        currentFilteredTrees = loadedDistrictTrees.filter(t => t.lat && t.lon && bounds.contains([t.lat, t.lon]));
-        
-        currentFilteredTrees.forEach(tree => {
-            if (activeTreeIdx === tree.idx && activeDragMarker) return; // Skip drawing canvas circle if it's the active draggable marker
-            
-            const marker = L.circleMarker([tree.lat, tree.lon], {
-                radius: 4,
-                fillColor: tree.singular ? "#EAB308" : "#228B22",
-                stroke: tree.singular ? true : false,
-                color: "#FFFFFF",
-                weight: 1,
-                fillOpacity: 0.85
-            });
-            
-            marker.on('click', (e) => {
-                L.DomEvent.stopPropagation(e);
-                if (editorMode === 'edit') {
-                    selectTreeByIdx(tree.idx);
-                }
-            });
-            
-            canvasLayerGroup.addLayer(marker);
-        });
-        
-        updateList(currentFilteredTrees);
-    } else {
-        currentFilteredTrees = [];
-        const singularTreesInLoaded = loadedDistrictTrees.filter(t => t.singular === true);
-        singularTreesInLoaded.forEach(tree => {
-            if (activeTreeIdx === tree.idx && activeDragMarker) return;
-            const marker = L.circleMarker([tree.lat, tree.lon], {
-                radius: 5,
-                fillColor: "#EAB308",
-                stroke: true,
-                color: "#FFFFFF",
-                weight: 1,
-                fillOpacity: 0.9
-            });
-            marker.on('click', (e) => {
-                L.DomEvent.stopPropagation(e);
-                if (editorMode === 'edit') {
-                    selectTreeByIdx(tree.idx);
-                }
-            });
-            canvasLayerGroup.addLayer(marker);
-        });
-        updateList([]);
-    }
-    
-    canvasLayerGroup.addTo(map);
-}
-
 // Select a tree from viewport and show draggable marker
 function selectTreeByIdx(idx) {
     const tree = loadedDistrictTrees.find(t => t.idx === idx);
@@ -662,7 +591,7 @@ function selectTreeByIdx(idx) {
     
     activeTreeIdx = idx;
     
-    selectedIndicator.textContent = `Editando: ${tree.especie || 'Árbol sin especie'}`;
+    selectedIndicator.textContent = `Editando: ${tree.especie || 'Árbol sin especie'} ID ${tree.idx}`;
     selectedIndicator.style.color = '#22c55e';
     
     inputLat.value = tree.lat || '';
@@ -672,8 +601,6 @@ function selectTreeByIdx(idx) {
     inputSingular.checked = tree.singular === true;
     
     btnDelete.classList.remove('hidden');
-    
-    updateList(currentFilteredTrees); // Highlights list selection
     
     if (activeDragMarker) {
         map.removeLayer(activeDragMarker);
@@ -714,11 +641,7 @@ function selectTreeByIdx(idx) {
         } else {
             if (oldDistrict) trackModifiedDistrict(oldDistrict);
         }
-        
-        updateVisibleMarkers();
     });
-    
-    updateVisibleMarkers(); // Hides canvas dot for this tree
 }
 
 // Move tree from one district to another by modifying in-memory caches
@@ -755,7 +678,7 @@ async function moveTreeToNewDistrict(tree, oldDistrict, newDistrict) {
             loadedDistrictsData[newDistrict] = [];
         }
         renderDistrictTags();
-        drawDistrictBoundaries();
+        // drawDistrictBoundaries();
     }
     
     // Add to new district
@@ -828,8 +751,6 @@ function clearForm() {
         map.removeLayer(activeDragMarker);
         activeDragMarker = null;
     }
-    
-    updateVisibleMarkers();
 }
 
 async function saveFormToMemory() {
@@ -920,7 +841,7 @@ async function saveFormToMemory() {
             }
             if (editorMode === 'edit') {
                 renderDistrictTags();
-                drawDistrictBoundaries();
+                // drawDistrictBoundaries();
             }
         }
         
@@ -935,8 +856,6 @@ async function saveFormToMemory() {
         }
         showToast("Nuevo árbol añadido");
     }
-    
-    updateVisibleMarkers();
     return true;
 }
 

@@ -286,8 +286,8 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             text-align: center;
-            width: fit-content;
-            margin: 0 auto 1.25rem;
+            width: 100%;
+            margin-bottom: 1.25rem;
         }
 
         .btn-menu:hover {
@@ -330,11 +330,9 @@
             <!-- 1. MENU VIEW -->
             <div id="menu-view" style="margin-top: 1rem;">
                 <button type="button" class="btn-menu" id="btn-mode-create">
-                    <span class="btn-menu-icon">➕</span>
                     <span>Crear Nuevo Árbol</span>
                 </button>
                 <button type="button" class="btn-menu" id="btn-mode-edit">
-                    <span class="btn-menu-icon">✏️</span>
                     <span>Editar Árbol Existente</span>
                 </button>
             </div>
@@ -405,11 +403,7 @@
                     </button>
                 </div>
 
-                <!-- List of trees in the visible area -->
-                <div class="list-header" id="list-header-title">Árboles en el Área Visible (<span id="count-registered">0</span>)</div>
-                <div class="trees-list-container" style="max-height: calc(100vh - 650px); overflow-y: auto;">
-                    <div id="singular-trees-list" class="trees-list"></div>
-                </div>
+
             </div>
 
             <div class="loader hidden" id="loader">
