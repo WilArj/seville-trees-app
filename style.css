@@ -150,6 +150,10 @@ body.sidebar-collapsed .toggle-sidebar-btn {
     transition: border 0.2s, background 0.2s;
 }
 
+.search-container.idx-search {
+    padding-right: 6px; /* Reduced right padding so the inset button is uniform */
+}
+
 .search-container:focus-within {
     border-color: var(--border);
     background: rgba(255,255,255,0.08);
