@@ -840,14 +840,12 @@ function renderTreeListChunk() {
         // Click para enfocar
         item.addEventListener('click', () => {
             if (tree.lat && tree.lon && marker) {
-                if (currentMode === 'global') {
+                if (currentMode === 'global' && markerLayerGroup) {
                     markerLayerGroup.zoomToShowLayer(marker, () => {
-                        map.setView([tree.lat, tree.lon], 18);
-                        marker.openPopup();
+                        marker.fire('click');
                     });
                 } else {
-                    map.setView([tree.lat, tree.lon], 18);
-                    marker.openPopup();
+                    marker.fire('click');
                 }
             }
         });
@@ -1038,10 +1036,10 @@ function setupEvents() {
                             // En caso de que haya clustering, hay que revelar el marcador primero
                             if (currentMode === 'global' && markerLayerGroup) {
                                 markerLayerGroup.zoomToShowLayer(currentMarkers[markerIndex], () => {
-                                    currentMarkers[markerIndex].openPopup();
+                                    currentMarkers[markerIndex].fire('click');
                                 });
                             } else {
-                                currentMarkers[markerIndex].openPopup();
+                                currentMarkers[markerIndex].fire('click');
                             }
                         } else {
                             alert(`El árbol ${tree.idx} se encuentra aquí, pero actualmente está oculto por tus filtros.`);
