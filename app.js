@@ -1299,6 +1299,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     map.flyTo([lat, lng], 17, { duration: 1.5 });
+                    
+                    if (window.userLocationMarker) {
+                        window.userLocationMarker.setLatLng([lat, lng]);
+                    } else {
+                        window.userLocationMarker = L.circleMarker([lat, lng], {
+                            radius: 8,
+                            fillColor: "#007AFF", // iOS Blue
+                            color: "#FFFFFF",
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 1,
+                            className: 'pulse-marker'
+                        }).addTo(map);
+                    }
                 },
                 (error) => {
                     fabGps.style.color = '';
