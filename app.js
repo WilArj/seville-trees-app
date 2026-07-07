@@ -700,7 +700,12 @@ function renderTrees() {
         }
 
         marker.on('click', (e) => {
-            if (e && e.originalEvent) L.DomEvent.stopPropagation(e.originalEvent); // Prevent map click
+            if (e && e.originalEvent) L.DomEvent.stop(e.originalEvent); // Prevent map click reliably
+            
+            // Flag to prevent map.on('click') from closing it immediately just in case
+            window.suppressMapClick = true;
+            setTimeout(() => window.suppressMapClick = false, 100);
+
             openBottomSheet(tree, isSingular, speciesLink, marker);
             
             // Fly to tree but keeping bottom sheet area into account
@@ -840,12 +845,32 @@ function renderTreeListChunk() {
         // Click para enfocar
         item.addEventListener('click', () => {
             if (tree.lat && tree.lon && marker) {
+                // Flag para map click
+                window.suppressMapClick = true;
+                setTimeout(() => window.suppressMapClick = false, 100);
+
                 if (currentMode === 'global' && markerLayerGroup) {
                     markerLayerGroup.zoomToShowLayer(marker, () => {
-                        marker.fire('click');
+                        openBottomSheet(tree, isSingular, speciesLink, marker);
                     });
                 } else {
-                    marker.fire('click');
+                    openBottomSheet(tree, isSingular, speciesLink, marker);
+                }
+                
+                // Fly to tree but keeping bottom sheet area into account
+                const mapHeight = map.getSize().y;
+                const offset = mapHeight * 0.25; // center a bit higher
+                const point = map.project([tree.lat, tree.lon], 18);
+                point.y += offset;
+                const latlng = map.unproject(point, 18);
+                map.flyTo(latlng, 18, { duration: 0.5 });
+                
+                // On mobile, auto-collapse sidebar
+                if (window.innerWidth <= 768) {
+                    document.body.classList.add('sidebar-collapsed');
+                    const btn = document.getElementById('toggle-sidebar-btn');
+                    if (btn) btn.innerHTML = '<i data-lucide="chevron-right"></i>';
+                    lucide.createIcons();
                 }
             }
         });
@@ -1038,6 +1063,10 @@ function setupEvents() {
                             let speciesLink = tree.url_especie 
                                 ? `<a href="${tree.url_especie}" target="_blank" title="Ver en Wikipedia" class="species-link">${speciesName}</a>`
                                 : speciesName;
+
+                            // Flag para map click
+                            window.suppressMapClick = true;
+                            setTimeout(() => window.suppressMapClick = false, 100);
 
                             // En caso de que haya clustering, hay que revelar el marcador primero
                             if (currentMode === 'global' && markerLayerGroup) {
@@ -1311,6 +1340,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Also close sheet and reset marker when map is clicked
     map.on('click', () => {
+        if (window.suppressMapClick) return;
         document.getElementById('tree-bottom-sheet').classList.add('hidden');
         resetSelectedMarker();
     });
