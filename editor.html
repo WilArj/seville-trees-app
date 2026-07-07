@@ -266,8 +266,8 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             text-align: center;
-            width: 100%;
-            margin-bottom: 1.25rem;
+            width: fit-content;
+            margin: 0 auto 1.25rem;
         }
 
         .btn-menu:hover {
@@ -298,12 +298,12 @@
     <div id="app">
         <!-- Sidebar / Control Panel -->
         <aside class="sidebar glass">
-            <div class="sidebar-header">
-                <div class="header-actions">
+            <div class="sidebar-header" style="text-align: center; padding: 0 1rem;">
+                <div class="header-actions" style="justify-content: center; margin-bottom: 1.5rem;">
                     <a href="index.html" class="btn-back" id="btn-top-back">⬅ Volver a la App</a>
                 </div>
                 <h1>Editor de Árboles</h1>
-                <p id="editor-description">Elige una opción para empezar a gestionar el censo.</p>
+                <p id="editor-description" style="margin-top: 0.5rem;">Elige una opción para empezar a gestionar el censo.</p>
             </div>
             
             <!-- 1. MENU VIEW -->

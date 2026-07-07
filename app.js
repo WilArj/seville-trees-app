@@ -1202,6 +1202,12 @@ function openBottomSheet(tree, isSingular, speciesLink, marker) {
 
 // Event Listeners for new UI
 document.addEventListener('DOMContentLoaded', () => {
+    // Solo mostrar el icono del editor si estamos en localhost
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        const editorLink = document.getElementById('editor-link');
+        if (editorLink) editorLink.style.display = 'block';
+    }
+
     // Mode toggles
     const rGlobal = document.getElementById('mode-global');
     const rDistrict = document.getElementById('mode-district');
