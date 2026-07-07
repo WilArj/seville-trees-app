@@ -1042,8 +1042,7 @@ function setupEvents() {
                     const markerIndex = currentFilteredTrees.findIndex(t => t.idx === tree.idx);
                     
                     if (markerIndex !== -1 && currentMarkers[markerIndex]) {
-                        let isSingular = (tree.idx !== null && tree.idx !== undefined && singularIndices.has(tree.idx)) || 
-                                         (tree.nombre_comun && singularTreesByCommonName.has(tree.nombre_comun));
+                        let isSingular = singularTrees.some(t => t.idx === tree.idx || (tree.nombre_comun && t.nombre_comun === tree.nombre_comun));
                         let speciesName = tree.especie || 'Desconocida';
                         let speciesLink = tree.url_especie 
                             ? `<a href="${tree.url_especie}" target="_blank" title="Ver en Wikipedia" class="species-link">${speciesName}</a>`
