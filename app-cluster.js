@@ -61,7 +61,7 @@ function initMap() {
 async function loadData() {
     loader.classList.remove('hidden');
     try {
-        const response = await fetch('../trees.json?v=' + new Date().getTime());
+        const response = await fetch('trees.json?v=' + new Date().getTime());
         if (!response.ok) throw new Error("Failed to load data.");
         allTrees = await response.json();
         

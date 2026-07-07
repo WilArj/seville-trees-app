@@ -325,7 +325,7 @@ async function enterModeGlobal() {
         loader.classList.remove('hidden');
         loaderText.textContent = "Descargando base de datos completa (38 MB)...";
         try {
-            const response = await fetch(`../trees.json?v=${Date.now()}`);
+            const response = await fetch(`trees.json?v=${Date.now()}`);
             if (!response.ok) throw new Error("No se pudo descargar el archivo JSON.");
             fullTreesCache = await response.json();
             allTrees = fullTreesCache;
@@ -1148,7 +1148,7 @@ function parseCSV(text) {
 // Load Census Data in background to enrich CSV trees lacking details
 async function loadCensusDataBackground() {
     try {
-        const response = await fetch(`../trees.json?v=${Date.now()}`);
+        const response = await fetch(`trees.json?v=${Date.now()}`);
         if (response.ok) {
             censusData = await response.json();
             console.log("Censo de Sevilla cargado en segundo plano.");

@@ -486,7 +486,7 @@ async function enableCreateModeGuidance() {
     loaderText.textContent = "Descargando árboles de referencia...";
     
     try {
-        const response = await fetch(`../trees.json?v=${Date.now()}`);
+        const response = await fetch(`trees.json?v=${Date.now()}`);
         if (!response.ok) throw new Error("Network error");
         
         fullTreesCache = await response.json();
