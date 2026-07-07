@@ -628,8 +628,9 @@ function renderTrees() {
             ? "Especie desconocida" 
             : tree.especie;
             
+        const searchName = speciesName.replace(/\s+sp\.?$/i, '').replace(/\s+L\.?$/i, '');
         const speciesLink = (speciesName !== "Especie desconocida")
-            ? `<a href="https://es.wikipedia.org/wiki/Especial:Buscar?search=${encodeURIComponent(speciesName)}" target="_blank" style="color: inherit; text-decoration: underline;">${speciesName}</a>`
+            ? `<a href="https://es.wikipedia.org/wiki/Especial:Buscar?search=${encodeURIComponent(searchName)}" target="_blank" style="color: inherit; text-decoration: underline;">${speciesName}</a>`
             : speciesName;
 
         let showFlowers = false;
@@ -901,8 +902,9 @@ function setupEvents() {
                     if (markerIndex !== -1 && currentMarkers[markerIndex]) {
                         let isSingular = singularTrees.some(t => t.idx === tree.idx || (tree.nombre_comun && t.nombre_comun === tree.nombre_comun));
                         let speciesName = tree.especie || 'Desconocida';
-                        let speciesLink = tree.url_especie 
-                            ? `<a href="${tree.url_especie}" target="_blank" title="Ver en Wikipedia" class="species-link">${speciesName}</a>`
+                        let searchName = speciesName.replace(/\s+sp\.?$/i, '').replace(/\s+L\.?$/i, '');
+                        let speciesLink = (speciesName !== 'Desconocida')
+                            ? `<a href="https://es.wikipedia.org/wiki/Especial:Buscar?search=${encodeURIComponent(searchName)}" target="_blank" title="Ver en Wikipedia" class="species-link">${speciesName}</a>`
                             : speciesName;
 
                         const doFlyAndOpen = () => {
