@@ -105,11 +105,6 @@ function initMap() {
     map.on('zoomend', () => {
         updateMarkerSizes();
     });
-    
-    // Close bottom sheet when clicking empty map
-    map.on('click', () => {
-        document.getElementById('tree-bottom-sheet').classList.add('hidden');
-    });
 }
 
 // Extend Leaflet Canvas renderer to draw beautiful, high-performance flower shapes on the fly
@@ -1262,56 +1257,63 @@ function resetSelectedMarker() {
 }
 
 function openBottomSheet(tree, isSingular, speciesLink, marker) {
-    resetSelectedMarker();
-    if (marker && marker.setStyle) {
-        currentlySelectedMarker = marker;
-        marker.options.originalWeight = marker.options.weight;
-        marker.options.originalColor = marker.options.color;
-        marker.setStyle({
-            weight: 3,
-            color: "#ffffff"
-        });
-        marker.bringToFront();
+    try {
+        resetSelectedMarker();
+        if (marker && marker.setStyle) {
+            currentlySelectedMarker = marker;
+            marker.options.originalWeight = marker.options.weight;
+            marker.options.originalColor = marker.options.color;
+            marker.setStyle({
+                weight: 3,
+                color: "#ffffff"
+            });
+            if (marker.bringToFront) {
+                try { marker.bringToFront(); } catch(e) {}
+            }
+        }
+
+        const sheet = document.getElementById('tree-bottom-sheet');
+        const title = document.getElementById('sheet-title');
+        const subtitle = document.getElementById('sheet-subtitle');
+        const badges = document.getElementById('sheet-badges');
+        const loc = document.getElementById('sheet-location');
+        const height = document.getElementById('sheet-height');
+        const status = document.getElementById('sheet-status');
+        const threatContainer = document.getElementById('sheet-threat-container');
+        const threat = document.getElementById('sheet-threat');
+
+        title.innerHTML = isSingular ? `⭐ ${tree.nombre_comun || tree.especie}` : speciesLink;
+        
+        if (isSingular) {
+            subtitle.innerHTML = `Especie: ${speciesLink}`;
+            subtitle.style.display = 'block';
+        } else {
+            subtitle.innerHTML = tree.familia ? `Familia: ${tree.familia}` : (tree.nombre_comun || '');
+            subtitle.style.display = subtitle.innerHTML ? 'block' : 'none';
+        }
+
+        // Build Badges
+        badges.innerHTML = '';
+        if (isSingular) badges.innerHTML += `<span class="tag" style="background: rgba(251,191,36,0.2); color: #FBBF24;">Singular</span>`;
+        if (tree.protegido) badges.innerHTML += `<span class="tag" style="background: rgba(59,130,246,0.2); color: #3B82F6;">Protegido</span>`;
+        if (tree.tipologia) badges.innerHTML += `<span class="tag">${tree.tipologia}</span>`;
+        
+        loc.textContent = `${tree.distrito || 'Sin distrito'}, ${tree.barrio || 'Sin barrio'}`;
+        height.textContent = tree.altura ? `${tree.altura} m` : 'Desconocida';
+        status.textContent = tree.estado || 'Normal';
+
+        if (tree.categoria_amenaza) {
+            threatContainer.classList.remove('hidden');
+            threat.textContent = tree.categoria_amenaza;
+        } else {
+            threatContainer.classList.add('hidden');
+        }
+
+        sheet.classList.remove('hidden');
+    } catch (err) {
+        alert("Error en openBottomSheet: " + err.message);
+        console.error(err);
     }
-
-    const sheet = document.getElementById('tree-bottom-sheet');
-    const title = document.getElementById('sheet-title');
-    const subtitle = document.getElementById('sheet-subtitle');
-    const badges = document.getElementById('sheet-badges');
-    const loc = document.getElementById('sheet-location');
-    const height = document.getElementById('sheet-height');
-    const status = document.getElementById('sheet-status');
-    const threatContainer = document.getElementById('sheet-threat-container');
-    const threat = document.getElementById('sheet-threat');
-
-    title.innerHTML = isSingular ? `⭐ ${tree.nombre_comun || tree.especie}` : speciesLink;
-    
-    if (isSingular) {
-        subtitle.innerHTML = `Especie: ${speciesLink}`;
-        subtitle.style.display = 'block';
-    } else {
-        subtitle.innerHTML = tree.familia ? `Familia: ${tree.familia}` : (tree.nombre_comun || '');
-        subtitle.style.display = subtitle.innerHTML ? 'block' : 'none';
-    }
-
-    // Build Badges
-    badges.innerHTML = '';
-    if (isSingular) badges.innerHTML += `<span class="tag" style="background: rgba(251,191,36,0.2); color: #FBBF24;">Singular</span>`;
-    if (tree.protegido) badges.innerHTML += `<span class="tag" style="background: rgba(59,130,246,0.2); color: #3B82F6;">Protegido</span>`;
-    if (tree.tipologia) badges.innerHTML += `<span class="tag">${tree.tipologia}</span>`;
-    
-    loc.textContent = `${tree.distrito || 'Sin distrito'}, ${tree.barrio || 'Sin barrio'}`;
-    height.textContent = tree.altura ? `${tree.altura} m` : 'Desconocida';
-    status.textContent = tree.estado || 'Normal';
-
-    if (tree.categoria_amenaza) {
-        threatContainer.classList.remove('hidden');
-        threat.textContent = tree.categoria_amenaza;
-    } else {
-        threatContainer.classList.add('hidden');
-    }
-
-    sheet.classList.remove('hidden');
 }
 
 // Event Listeners for new UI
