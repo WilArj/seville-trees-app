@@ -82,11 +82,18 @@ function initMap() {
     
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OSM contributors &copy; CARTO',
         subdomains: 'abcd',
         maxZoom: 20
-    }).addTo(map);
+    });
+
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri',
+        maxZoom: 20
+    });
+
+    darkLayer.addTo(map);
 
     // Guardar el estado del mapa cada vez que se mueva o haga zoom
     map.on('moveend', () => {
@@ -155,6 +162,41 @@ function initMap() {
         }
     });
 
+    // Layer Toggle Control (Map vs Satellite)
+    let isSatellite = false;
+    const LayerToggleControl = L.Control.extend({
+        options: { position: 'bottomright' },
+        onAdd: function() {
+            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+            container.innerHTML = `
+                <a href="#" id="layer-toggle-btn" class="gps-control-btn" title="Cambiar a Satélite">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+                </a>
+            `;
+            
+            L.DomEvent.disableClickPropagation(container);
+            
+            const btn = container.querySelector('#layer-toggle-btn');
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (isSatellite) {
+                    map.removeLayer(satelliteLayer);
+                    darkLayer.addTo(map);
+                    isSatellite = false;
+                    btn.title = "Cambiar a Satélite";
+                } else {
+                    map.removeLayer(darkLayer);
+                    satelliteLayer.addTo(map);
+                    isSatellite = true;
+                    btn.title = "Cambiar a Mapa Oscuro";
+                }
+            });
+            
+            return container;
+        }
+    });
+
+    map.addControl(new LayerToggleControl());
     map.addControl(new GpsControl());
 
     // Dynamic marker size adjustment on zoom
