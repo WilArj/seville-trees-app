@@ -203,11 +203,10 @@ async function loadInitialMetadata() {
 
 // Switch Active Navigation Tabs
 function updateActiveTab() {
-    btnModeGlobal.classList.remove('active');
-    btnModeDistrict.classList.remove('active');
-
-    if (currentMode === 'global') btnModeGlobal.classList.add('active');
-    else if (currentMode === 'district') btnModeDistrict.classList.add('active');
+    if (modeGlobal && modeDistrict) {
+        if (currentMode === 'global') modeGlobal.checked = true;
+        else if (currentMode === 'district') modeDistrict.checked = true;
+    }
 }
 
 // Clear map and boundaries
@@ -910,8 +909,9 @@ function renderTags() {
 // Configurar todos los manejadores de eventos
 function setupEvents() {
     // Selectores de Modo en el sidebar
-    btnModeGlobal.addEventListener('click', enterModeGlobal);
-    btnModeDistrict.addEventListener('click', enterModeDistrict);
+    // Handled in DOMContentLoaded now
+    // btnModeGlobal.addEventListener('click', enterModeGlobal);
+    // btnModeDistrict.addEventListener('click', enterModeDistrict);
 
     // Toggle global de flores en modo Global
     globalFlowerToggle.addEventListener('change', (e) => {
@@ -1193,6 +1193,15 @@ document.addEventListener('DOMContentLoaded', () => {
             aboutModal.classList.add('hidden');
         });
 
+        // Cerrar al hacer clic fuera del contenido
+        aboutModal.addEventListener('click', (e) => {
+            if (e.target === aboutModal) {
+                aboutModal.classList.add('hidden');
+            }
+        });
+    }
+});
+
 // ==========================================
 // NEW UI LOGIC (Apple Maps Aesthetic)
 // ==========================================
@@ -1303,11 +1312,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-        // Cerrar al hacer clic fuera del contenido
-        aboutModal.addEventListener('click', (e) => {
-            if (e.target === aboutModal) {
-                aboutModal.classList.add('hidden');
-            }
-        });
-    }
-});
