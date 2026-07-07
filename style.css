@@ -552,6 +552,24 @@ input[type="number"] {
     background: rgba(255, 255, 255, 0.2);
 }
 
+#about-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: 500;
+    width: 100%;
+    line-height: 1;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+#about-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
 /* Custom Sleek Cluster styles */
 .marker-cluster-custom {
     background: none;
