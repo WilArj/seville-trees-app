@@ -651,6 +651,18 @@ input[type="number"] {
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        max-width: 100%;
+    }
+    .toggle-sidebar-btn {
+        left: auto;
+        right: 1.5rem;
+    }
+    body.sidebar-collapsed .toggle-sidebar-btn {
+        left: 1rem;
+        right: auto;
+    }
     .bottom-sheet {
         left: 1rem;
         right: 1rem;
