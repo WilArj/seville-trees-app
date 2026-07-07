@@ -28,7 +28,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             if idx_str:
                 try:
                     idx = int(idx_str)
-                    master_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'trees.json')
+                    master_path = os.path.join(os.getcwd(), 'trees.json')
                     with open(master_path, 'r', encoding='utf-8') as f:
                         trees = json.load(f)
                     
@@ -63,8 +63,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 data = json.loads(post_data.decode('utf-8'))
                 
-                # Save to CSV file 'seville-trees-app/data/singular_trees.csv'
-                csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'seville-trees-app', 'data', 'singular_trees.csv')
+                # Save to CSV file 'data/singular_trees.csv'
+                csv_path = os.path.join(os.getcwd(), 'data', 'singular_trees.csv')
                 
                 # Format to save
                 es_headers = [
@@ -108,7 +108,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                     raise Exception("Missing filename")
                 
                 # Atomic save for specific district JSON file
-                data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'seville-trees-app', 'data')
+                data_dir = os.path.join(os.getcwd(), 'data')
                 district_path = os.path.join(data_dir, filename)
                 
                 temp_fd, temp_path = tempfile.mkstemp(dir=data_dir)
@@ -133,7 +133,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                                 all_merged_trees.extend(dist_trees)
                 
                 # Atomic save for master trees.json
-                master_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'trees.json')
+                master_path = os.path.join(os.getcwd(), 'trees.json')
                 temp_fd, temp_path = tempfile.mkstemp(dir=os.path.dirname(master_path))
                 with os.fdopen(temp_fd, 'w', encoding='utf-8') as f:
                     json.dump(all_merged_trees, f, ensure_ascii=False)
@@ -183,9 +183,10 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 import socketserver
 
 if __name__ == '__main__':
-    # Change working dir to script directory to ensure relative paths work
+    # Change working dir to ROOT directory to serve frontend and use relative paths
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    os.chdir(script_dir)
+    root_dir = os.path.dirname(script_dir)
+    os.chdir(root_dir)
     
     # Allow port reuse to avoid 'Address already in use' errors on quick restarts
     ThreadingHTTPServer.allow_reuse_address = True

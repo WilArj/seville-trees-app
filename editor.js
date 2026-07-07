@@ -537,7 +537,7 @@ async function enableCreateModeGuidance() {
                 else { c += 'large'; size = 46; }
                 return new L.DivIcon({ 
                     html: `<div><span>${childCount}</span></div>`, 
-                    className: 'marker-cluster' + c, 
+                    className: 'marker-cluster-custom' + c, 
                     iconSize: new L.Point(size, size) 
                 });
             }
