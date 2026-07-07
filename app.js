@@ -1133,12 +1133,17 @@ function openBottomSheet(tree, isSingular, speciesLink, marker) {
         const height = document.getElementById('sheet-height');
         const status = document.getElementById('sheet-status');
 
-        title.innerHTML = isSingular ? (tree.nombre_comun || tree.especie || 'Árbol Singular') : speciesLink;
-        
         if (isSingular) {
-            subtitle.innerHTML = `Especie: ${speciesLink}`;
-            subtitle.style.display = 'block';
+            if (tree.nombre_comun && tree.nombre_comun !== tree.especie) {
+                title.innerHTML = tree.nombre_comun;
+                subtitle.innerHTML = `Especie: ${speciesLink}`;
+                subtitle.style.display = 'block';
+            } else {
+                title.innerHTML = speciesLink;
+                subtitle.style.display = 'none';
+            }
         } else {
+            title.innerHTML = speciesLink;
             subtitle.innerHTML = tree.familia ? `Familia: ${tree.familia}` : (tree.nombre_comun || '');
             subtitle.style.display = subtitle.innerHTML ? 'block' : 'none';
         }
