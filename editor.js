@@ -958,7 +958,7 @@ function setupEvents() {
                 
                 if (tree.singular) tree.flower_color = "#EAB308";
                 else if (tree.flower_color === "#EAB308") delete tree.flower_color;
-
+            }
         }
     };
     
