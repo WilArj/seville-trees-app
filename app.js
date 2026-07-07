@@ -302,7 +302,6 @@ function enterModeDistrict() {
     drawDistrictBoundaries();
     
     statTotal.textContent = "0";
-    visibleTreesList.innerHTML = '';
 }
 
 // Dibujar perímetros poligonales iniciales en modo distritos
