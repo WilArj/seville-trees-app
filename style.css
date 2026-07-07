@@ -562,6 +562,11 @@ input:checked + .slider:before {
     align-items: center;
 }
 
+.tag:hover {
+    cursor: pointer;
+    background: rgba(255,255,255,0.15);
+}
+
 /* Remove arrows from number inputs */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -685,4 +690,44 @@ input[type="number"] {
     body.sidebar-collapsed .bottom-sheet {
         left: 1rem;
     }
+}
+
+/* ------------------- MODAL ------------------- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    padding: 2.5rem;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    color: var(--text-main);
+}
+
+.close-modal-btn {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-modal-btn:hover {
+    color: var(--text-main);
 }
