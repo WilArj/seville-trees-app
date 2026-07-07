@@ -846,10 +846,10 @@ function renderTreeListChunk() {
                 };
 
                 if (currentMode === 'global' && markerLayerGroup) {
-                    markerLayerGroup.zoomToShowLayer(marker, doFlyAndOpen);
-                } else {
-                    doFlyAndOpen();
+                    try { markerLayerGroup.zoomToShowLayer(marker); } catch(e) {}
                 }
+                
+                setTimeout(doFlyAndOpen, 50);
                 
                 // On mobile, auto-collapse sidebar
                 if (window.innerWidth <= 768) {
@@ -1062,10 +1062,11 @@ function setupEvents() {
 
                         // En caso de que haya clustering, hay que revelar el marcador primero
                         if (currentMode === 'global' && markerLayerGroup) {
-                            markerLayerGroup.zoomToShowLayer(currentMarkers[markerIndex], doFlyAndOpen);
-                        } else {
-                            doFlyAndOpen();
+                            try { markerLayerGroup.zoomToShowLayer(currentMarkers[markerIndex]); } catch(e) {}
                         }
+                        
+                        // Always open the sheet and fly to the point, bypassing MarkerCluster's buggy callback
+                        setTimeout(doFlyAndOpen, 50);
                     } else {
                         alert(`El árbol ${tree.idx} se encuentra aquí, pero actualmente está oculto por tus filtros.`);
                     }
