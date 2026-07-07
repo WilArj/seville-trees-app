@@ -7,18 +7,18 @@ const threatenedFilter = document.getElementById('threatened-filter');
 const protectedFilter = document.getElementById('protected-filter');
 const singularFilter = document.getElementById('singular-filter');
 const statTotal = document.getElementById('stat-total');
+const statSpecies = document.getElementById('stat-species');
+const statHeight = document.getElementById('stat-height');
 const loader = document.getElementById('loader');
 const loaderText = document.getElementById('loader-text');
 const visibleTreesList = document.getElementById('visible-trees-list');
 
 // Panels
-const controlsPanel = document.getElementById('controls-panel');
-const statsPanel = document.getElementById('stats-panel');
 const listPanel = document.getElementById('list-panel');
 
 // Mode selectors
-const btnModeGlobal = document.getElementById('btn-mode-global');
-const btnModeDistrict = document.getElementById('btn-mode-district');
+const modeGlobal = document.getElementById('mode-global');
+const modeDistrict = document.getElementById('mode-district');
 
 // Global Flower Elements
 const globalFlowerToggle = document.getElementById('global-flower-toggle');
@@ -57,11 +57,13 @@ let currentListIndex = 0;
 const CHUNK_SIZE = 100;
 
 // Initialize Map
+let darkLayer;
+let satelliteLayer;
+
 function initMap() {
     let initialCenter = [37.3891, -5.9845];
     let initialZoom = 13;
 
-    // Intentar recuperar el estado previo del mapa
     const savedState = localStorage.getItem('sevilleTreesMapState');
     if (savedState) {
         try {
@@ -77,25 +79,21 @@ function initMap() {
 
     map = L.map('map', {
         zoomControl: false,
+        attributionControl: false,
         preferCanvas: true
     }).setView(initialCenter, initialZoom);
     
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OSM contributors &copy; CARTO',
+    darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         subdomains: 'abcd',
         maxZoom: 20
     });
 
-    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri',
+    satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 20
     });
 
     darkLayer.addTo(map);
 
-    // Guardar el estado del mapa cada vez que se mueva o haga zoom
     map.on('moveend', () => {
         localStorage.setItem('sevilleTreesMapState', JSON.stringify({
             center: map.getCenter(),
@@ -103,105 +101,14 @@ function initMap() {
         }));
     });
 
-    // Lógica del botón GPS como Control Nativo de Leaflet
-    let userLocationMarker = null;
-
-    const GpsControl = L.Control.extend({
-        options: { position: 'bottomright' },
-        onAdd: function() {
-            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-            container.innerHTML = `
-                <a href="#" id="gps-btn" class="gps-control-btn" title="Mi ubicación">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
-                </a>
-            `;
-            
-            L.DomEvent.disableClickPropagation(container);
-            
-            const btn = container.querySelector('#gps-btn');
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (!navigator.geolocation) {
-                    alert('Tu navegador no soporta geolocalización.');
-                    return;
-                }
-                
-                btn.classList.add('locating');
-                
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        btn.classList.remove('locating');
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        
-                        map.flyTo([lat, lng], 17, { duration: 1.5 });
-                        
-                        if (userLocationMarker) {
-                            userLocationMarker.setLatLng([lat, lng]);
-                        } else {
-                            userLocationMarker = L.circleMarker([lat, lng], {
-                                radius: 8,
-                                fillColor: "#3b82f6", // Blue color
-                                color: "#ffffff",
-                                weight: 2,
-                                opacity: 1,
-                                fillOpacity: 0.9
-                            }).addTo(map);
-                        }
-                    },
-                    (error) => {
-                        btn.classList.remove('locating');
-                        console.warn('Error GPS:', error);
-                        alert('No se pudo obtener la ubicación. Por favor, revisa los permisos.');
-                    },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
-            });
-            
-            return container;
-        }
-    });
-
-    // Layer Toggle Control (Map vs Satellite)
-    let isSatellite = false;
-    const LayerToggleControl = L.Control.extend({
-        options: { position: 'bottomright' },
-        onAdd: function() {
-            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-            container.innerHTML = `
-                <a href="#" id="layer-toggle-btn" class="gps-control-btn" title="Cambiar a Satélite">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
-                </a>
-            `;
-            
-            L.DomEvent.disableClickPropagation(container);
-            
-            const btn = container.querySelector('#layer-toggle-btn');
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (isSatellite) {
-                    map.removeLayer(satelliteLayer);
-                    darkLayer.addTo(map);
-                    isSatellite = false;
-                    btn.title = "Cambiar a Satélite";
-                } else {
-                    map.removeLayer(darkLayer);
-                    satelliteLayer.addTo(map);
-                    isSatellite = true;
-                    btn.title = "Cambiar a Mapa Oscuro";
-                }
-            });
-            
-            return container;
-        }
-    });
-
-    map.addControl(new LayerToggleControl());
-    map.addControl(new GpsControl());
-
     // Dynamic marker size adjustment on zoom
     map.on('zoomend', () => {
         updateMarkerSizes();
+    });
+    
+    // Close bottom sheet when clicking empty map
+    map.on('click', () => {
+        document.getElementById('tree-bottom-sheet').classList.add('hidden');
     });
 }
 
@@ -729,31 +636,13 @@ function renderTrees() {
             if (match) singularName = match.name;
         }
 
-        const nonClickableSpecies = ['alcorque vacío', 'alcorque vacio', 'tocón', 'tocon', 'desconocida', 'no definido', 'no consta'];
-        const isClickable = tree.especie && !nonClickableSpecies.some(s => tree.especie.toLowerCase().includes(s));
-
-        const wikipediaUrl = isClickable ? `https://es.wikipedia.org/w/index.php?search=${encodeURIComponent(tree.especie)}&title=Especial:Buscar` : '#';
-        const speciesLink = isClickable 
-            ? `<a href="${wikipediaUrl}" class="species-wiki-link" target="_blank" rel="noopener noreferrer" title="Buscar en Wikipedia">${tree.especie}</a>`
-            : (tree.especie || 'Desconocida');
-
-        const titleText = isSingular 
-            ? `Árbol Singular: ${singularName || speciesLink}` 
-            : `${speciesLink} ${tree.amenazado ? '⚠️' : ''} ${tree.protegido && !tree.amenazado ? '🛡️' : ''}`;
-
-        const popupContent = `
-            <div class="tree-popup">
-                <h3 style="${isSingular ? 'color: #ca8a04; font-weight: 700;' : ''}">${titleText}</h3>
-                ${isSingular ? `<p style="color: #eab308; font-weight: 600;">Especie: ${speciesLink}</p>` : ''}
-                <p><strong>Distrito:</strong> ${tree.distrito || '-'}</p>
-                <p><strong>Barrio:</strong> ${tree.barrio || '-'}</p>
-                <p><strong>Altura:</strong> ${tree.altura ? tree.altura + 'm' : '-'}</p>
-                <p><strong>Estado:</strong> ${tree.estado || 'Normal'}</p>
-                ${tree.categoria_amenaza ? `<p style="color: #ef4444;"><strong>Amenaza:</strong> ${tree.categoria_amenaza}</p>` : ''}
-                ${tree.categoria_proteccion && !tree.categoria_amenaza ? `<p style="color: #3b82f6;"><strong>Protección:</strong> ${tree.categoria_proteccion}</p>` : ''}
-                ${tree.idx !== null && tree.idx !== undefined ? `<p style="color: #94a3b8; font-size: 0.75rem;">IDX Censo: ${tree.idx}</p>` : ''}
-            </div>
-        `;
+        const speciesName = (tree.especie === "NO ASIGNADO" || tree.especie === "S/D") 
+            ? "Especie desconocida" 
+            : tree.especie;
+            
+        const speciesLink = (speciesName !== "Especie desconocida")
+            ? `<a href="https://es.wikipedia.org/wiki/Especial:Buscar?search=${encodeURIComponent(speciesName)}" target="_blank" style="color: inherit; text-decoration: underline;">${speciesName}</a>`
+            : speciesName;
 
         let showFlowers = false;
         
@@ -777,43 +666,21 @@ function renderTrees() {
             }
         }
 
-        // Optimized Vector Drawing on HTML5 Canvas:
-        // We always use L.circleMarker (which renders on Canvas without creating DOM nodes).
+        // Scale down size by 20%
+        let r = baseRadius * 0.8;
+        if (isSingular) r = baseRadius * 1.5 * 0.8;
+
         let marker;
-        if (isSingular) {
-            // Render singular tree in Gold
-            marker = L.circleMarker([tree.lat, tree.lon], {
-                radius: r * 1.8, // Slightly larger
-                fillColor: "#EAB308", // Gold
-                color: "#FFFFFF",
-                weight: 1.5,
-                stroke: true,
-                fillOpacity: 1,
-                isFlower: false
-            });
-        } else if (tree.amenazado) {
-            // Render threatened tree in Red
-            marker = L.circleMarker([tree.lat, tree.lon], {
-                radius: r * 1.5,
-                fillColor: "#ef4444", // Red
-                color: "#ffffff",
-                weight: 1,
-                stroke: true,
-                fillOpacity: 0.9,
-                isFlower: false
-            });
-        } else if (tree.protegido) {
-            // Render protected tree in Blue
-            marker = L.circleMarker([tree.lat, tree.lon], {
-                radius: r * 1.3,
-                fillColor: "#3b82f6", // Blue
-                color: "#ffffff",
-                weight: 1,
-                stroke: true,
-                fillOpacity: 0.9,
-                isFlower: false
-            });
-        } else if (showFlowers && tree.flower_color) {
+        // Determine fill color
+        let fillColor = "#4CAF50"; // Default: Street / Viario
+        if (tree.tipologia && tree.tipologia.toLowerCase().includes('parque')) {
+            fillColor = "#2E7D32"; // Park
+        }
+        if (isSingular) fillColor = "#FBBF24";
+        if (tree.protegido) fillColor = "#3B82F6";
+        if (tree.amenazado) fillColor = "#EF4444";
+
+        if (showFlowers && tree.flower_color && !isSingular && !tree.protegido && !tree.amenazado) {
             marker = L.circleMarker([tree.lat, tree.lon], {
                 radius: r * 1.5,
                 fillColor: tree.flower_color,
@@ -824,14 +691,30 @@ function renderTrees() {
         } else {
             marker = L.circleMarker([tree.lat, tree.lon], {
                 radius: r,
-                fillColor: "#228B22", // Forest Green
-                stroke: false,
+                fillColor: fillColor,
+                color: "#ffffff",
+                weight: (isSingular || tree.protegido || tree.amenazado) ? 1 : 0,
+                stroke: (isSingular || tree.protegido || tree.amenazado) ? true : false,
                 fillOpacity: 0.8,
                 isFlower: false
             });
         }
 
-        marker.bindPopup(popupContent);
+        marker.on('click', (e) => {
+            L.DomEvent.stopPropagation(e); // Prevent map click
+            openBottomSheet(tree, isSingular, speciesLink);
+            
+            // Fly to tree but keeping bottom sheet area into account
+            // On mobile we might want to offset the center
+            const mapHeight = map.getSize().y;
+            const offset = mapHeight * 0.25; // center a bit higher
+            const point = map.project([tree.lat, tree.lon], 18);
+            point.y += offset;
+            const latlng = map.unproject(point, 18);
+            
+            map.flyTo(latlng, 18, { duration: 0.5 });
+        });
+
         marker._originalOptions = { ...marker.options };
         if (marker.options.icon) marker._originalIconOpacity = '1';
 
@@ -847,7 +730,30 @@ function renderTrees() {
         markerLayerGroup.addLayers(markersToAdd);
     }
 
-    statTotal.textContent = filteredTrees.length.toLocaleString();
+    statTotal.textContent = filteredTrees.length.toLocaleString('es-ES');
+    
+    // Calculate stats
+    let uniqueSpecies = new Set();
+    let totalHeight = 0;
+    let heightCount = 0;
+    
+    filteredTrees.forEach(t => {
+        if (t.especie && t.especie !== "NO ASIGNADO" && t.especie !== "S/D") {
+            uniqueSpecies.add(t.especie);
+        }
+        if (t.altura && !isNaN(parseFloat(t.altura))) {
+            totalHeight += parseFloat(t.altura);
+            heightCount++;
+        }
+    });
+    
+    if (statSpecies) {
+        statSpecies.textContent = uniqueSpecies.size.toLocaleString('es-ES');
+    }
+    if (statHeight) {
+        const avgHeight = heightCount > 0 ? (totalHeight / heightCount).toFixed(1) : '-';
+        statHeight.textContent = avgHeight !== '-' ? `${avgHeight} m` : '-';
+    }
 
     // Resetear lista sidebar
     visibleTreesList.innerHTML = '';
@@ -1286,6 +1192,116 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModalBtn.addEventListener('click', () => {
             aboutModal.classList.add('hidden');
         });
+
+// ==========================================
+// NEW UI LOGIC (Apple Maps Aesthetic)
+// ==========================================
+
+function openBottomSheet(tree, isSingular, speciesLink) {
+    const sheet = document.getElementById('tree-bottom-sheet');
+    const title = document.getElementById('sheet-title');
+    const subtitle = document.getElementById('sheet-subtitle');
+    const badges = document.getElementById('sheet-badges');
+    const loc = document.getElementById('sheet-location');
+    const height = document.getElementById('sheet-height');
+    const status = document.getElementById('sheet-status');
+    const threatContainer = document.getElementById('sheet-threat-container');
+    const threat = document.getElementById('sheet-threat');
+
+    title.innerHTML = isSingular ? `⭐ ${tree.nombre_comun || tree.especie}` : speciesLink;
+    subtitle.innerHTML = tree.familia ? `Familia: ${tree.familia}` : (tree.especie || 'Desconocida');
+
+    // Build Badges
+    badges.innerHTML = '';
+    if (isSingular) badges.innerHTML += `<span class="tag" style="background: rgba(251,191,36,0.2); color: #FBBF24;">Singular</span>`;
+    if (tree.protegido) badges.innerHTML += `<span class="tag" style="background: rgba(59,130,246,0.2); color: #3B82F6;">Protegido</span>`;
+    if (tree.tipologia) badges.innerHTML += `<span class="tag">${tree.tipologia}</span>`;
+    
+    loc.textContent = `${tree.distrito || 'Sin distrito'}, ${tree.barrio || 'Sin barrio'}`;
+    height.textContent = tree.altura ? `${tree.altura} m` : 'Desconocida';
+    status.textContent = tree.estado || 'Normal';
+
+    if (tree.categoria_amenaza) {
+        threatContainer.classList.remove('hidden');
+        threat.textContent = tree.categoria_amenaza;
+    } else {
+        threatContainer.classList.add('hidden');
+    }
+
+    sheet.classList.remove('hidden');
+}
+
+// Event Listeners for new UI
+document.addEventListener('DOMContentLoaded', () => {
+    // Mode toggles
+    const rGlobal = document.getElementById('mode-global');
+    const rDistrict = document.getElementById('mode-district');
+    
+    if (rGlobal && rDistrict) {
+        rGlobal.addEventListener('change', () => {
+            if (rGlobal.checked) enterModeGlobal();
+        });
+        rDistrict.addEventListener('change', () => {
+            if (rDistrict.checked) enterModeDistrict();
+        });
+    }
+
+    // Bottom sheet close
+    const closeSheetBtn = document.getElementById('close-sheet-btn');
+    if (closeSheetBtn) {
+        closeSheetBtn.addEventListener('click', () => {
+            document.getElementById('tree-bottom-sheet').classList.add('hidden');
+        });
+    }
+
+    // FAB Buttons
+    const fabHome = document.getElementById('fab-home');
+    const fabLayers = document.getElementById('fab-layers');
+    const fabGps = document.getElementById('fab-gps');
+
+    if (fabHome) {
+        fabHome.addEventListener('click', () => {
+            map.setView([37.3891, -5.9845], 13);
+        });
+    }
+
+    if (fabLayers) {
+        fabLayers.addEventListener('click', () => {
+            if (map.hasLayer(satelliteLayer)) {
+                map.removeLayer(satelliteLayer);
+                darkLayer.addTo(map);
+                fabLayers.classList.remove('active-layer');
+            } else {
+                map.removeLayer(darkLayer);
+                satelliteLayer.addTo(map);
+                fabLayers.classList.add('active-layer');
+            }
+        });
+    }
+
+    if (fabGps) {
+        fabGps.addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                alert('Tu navegador no soporta geolocalización.');
+                return;
+            }
+            fabGps.style.color = '#FBBF24'; // Loading state
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    fabGps.style.color = '';
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    map.flyTo([lat, lng], 17, { duration: 1.5 });
+                },
+                (error) => {
+                    fabGps.style.color = '';
+                    console.warn('Error GPS:', error);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        });
+    }
+});
 
         // Cerrar al hacer clic fuera del contenido
         aboutModal.addEventListener('click', (e) => {

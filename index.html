@@ -2,183 +2,226 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario de Árboles - Sevilla</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Árboles de Sevilla</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    
-    <!-- Leaflet MarkerCluster CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=20">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <div id="app">
         <!-- Sidebar Panel -->
-    <button id="toggle-sidebar-btn" class="toggle-sidebar-btn" title="Ocultar/Mostrar menú">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-    </button>
-    
-    <div class="sidebar glass" id="sidebar">
-        <div class="sidebar-content">
-            <div class="sidebar-header">
-                <h1>Árboles de Sevilla</h1>
-                <p>Explora el inventario botánico de la ciudad</p>
-                
-                <!-- View Mode Selector -->
-                <div class="view-mode-selector">
-                    <button id="btn-mode-global" class="btn-mode" title="Ver toda Sevilla usando Clustering">Global</button>
-                    <button id="btn-mode-district" class="btn-mode" title="Cargar distritos de manera interactiva">Distritos</button>
-                </div>
-                
-                <!-- Link to Singular Editor -->
-                <div style="margin-top: 1rem;">
-                    <a href="editor.html" class="btn-editor-link" style="text-decoration: none; color: #eab308; border: 1px solid rgba(234, 179, 8, 0.4); background: rgba(234, 179, 8, 0.1); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; justify-content: center;">
-                        ⚙️ Editor
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Dynamic Controls Panel -->
-            <div id="controls-panel" class="controls">
-                <!-- Global Flower Toggle (Only shown in Global Mode) -->
-                <div id="global-flower-control" class="control-group checkbox-group hidden">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="global-flower-toggle">
-                        <span class="slider round"></span>
-                    </label>
-                    <span class="toggle-label">Mostrar iconos de flores</span>
-                </div>
-
-                <!-- District Mode Indicator (Only shown in District Mode) -->
-                <div id="district-mode-indicator" class="control-group">
-                    <label>Distritos Cargados</label>
-                    <div id="loaded-districts-tags" class="tags-container">
-                        <span class="no-tags-placeholder">Ninguno. Haz clic en el mapa para cargar.</span>
+        <button id="toggle-sidebar-btn" class="toggle-sidebar-btn glass" title="Menú">
+            <i data-lucide="menu"></i>
+        </button>
+        
+        <aside class="sidebar glass" id="sidebar">
+            <div class="sidebar-content">
+                <!-- Header -->
+                <header class="sidebar-header">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <h1>Árboles de Sevilla</h1>
+                        <a href="editor.html" class="editor-link" title="Ajustes y Edición"><i data-lucide="settings"></i></a>
                     </div>
-                </div>
+                </header>
 
-                <!-- IDX Search -->
-                <div class="control-group">
-                    <label for="id-search">Buscador por Identificador (IDX)</label>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <input type="number" id="id-search" placeholder="Ej: 166937" autocomplete="off" style="flex: 1; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; padding: 0.75rem; border-radius: 8px;">
-                        <button id="btn-id-search" style="padding: 0 1rem; border-radius: 8px; background: #eab308; color: #000; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s;">Ir</button>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label for="species-search">Filtrar por Especie</label>
-                    <input type="text" id="species-search" placeholder="Ej: Citrus aurantium..." autocomplete="off">
+                <!-- Search -->
+                <div class="search-container">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="species-search" placeholder="Buscar especie..." autocomplete="off">
                     <div id="autocomplete-list" class="autocomplete-items hidden"></div>
-                    <div id="selected-species-tags" class="tags-container"></div>
+                </div>
+                <div id="selected-species-tags" class="tags-container"></div>
+
+                <!-- IDX Search (Collapsible or subtle) -->
+                <div class="search-container idx-search">
+                    <i data-lucide="hash" class="search-icon"></i>
+                    <input type="number" id="id-search" placeholder="ID del árbol..." autocomplete="off">
+                    <button id="btn-id-search">Ir</button>
                 </div>
 
-                <div class="control-group checkbox-group">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="living-only-filter" checked>
-                        <span class="slider round"></span>
-                    </label>
-                    <span class="toggle-label">Solo árboles vivos</span>
+                <div class="separator"></div>
+
+                <!-- View Mode Segmented Control -->
+                <div class="segmented-control">
+                    <input type="radio" id="mode-global" name="view-mode" value="global" checked>
+                    <label for="mode-global">Global</label>
+                    <input type="radio" id="mode-district" name="view-mode" value="district">
+                    <label for="mode-district">Distritos</label>
                 </div>
 
-                <div class="control-group checkbox-group">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="threatened-filter">
-                        <span class="slider round"></span>
-                    </label>
-                    <span class="toggle-label">Especies amenazadas</span>
+                <div id="district-mode-indicator" class="hidden" style="margin-top: 1rem; text-align: center;">
+                    <span class="text-muted" style="font-size: 0.85rem;">Toca el mapa para cargar zonas</span>
                 </div>
 
-                <div class="control-group checkbox-group">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="protected-filter">
-                        <span class="slider round"></span>
-                    </label>
-                    <span class="toggle-label">Especies protegidas</span>
+                <div class="separator"></div>
+
+                <!-- Filters -->
+                <div class="filters-panel">
+                    <div class="filter-item">
+                        <label class="ios-switch">
+                            <input type="checkbox" id="living-only-filter" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span>Árboles vivos</span>
+                    </div>
+
+                    <div class="filter-item">
+                        <label class="ios-switch">
+                            <input type="checkbox" id="protected-filter">
+                            <span class="slider"></span>
+                        </label>
+                        <span>Especies protegidas <span class="dot dot-blue"></span></span>
+                    </div>
+                    
+                    <div class="filter-item">
+                        <label class="ios-switch">
+                            <input type="checkbox" id="threatened-filter">
+                            <span class="slider"></span>
+                        </label>
+                        <span>Amenazadas <span class="dot dot-red"></span></span>
+                    </div>
+
+                    <div class="filter-item">
+                        <label class="ios-switch">
+                            <input type="checkbox" id="singular-filter">
+                            <span class="slider"></span>
+                        </label>
+                        <span>Árboles singulares <span class="dot dot-yellow"></span></span>
+                    </div>
+                    
+                    <div id="global-flower-control" class="filter-item hidden">
+                        <label class="ios-switch">
+                            <input type="checkbox" id="global-flower-toggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span>Iconos de flores 🌸</span>
+                    </div>
                 </div>
 
-                <div class="control-group checkbox-group">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="singular-filter">
-                        <span class="slider round"></span>
-                    </label>
-                    <span class="toggle-label">Árboles singulares</span>
+                <div class="separator"></div>
+
+                <!-- Stats Panel -->
+                <div class="stats-container">
+                    <div class="stat-main">
+                        <span id="stat-total" class="stat-huge">0</span>
+                        <span class="stat-label">árboles visibles</span>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-mini">
+                            <span id="stat-species" class="stat-num">0</span>
+                            <span class="stat-text">especies</span>
+                        </div>
+                        <div class="stat-mini">
+                            <span id="stat-height" class="stat-num">-</span>
+                            <span class="stat-text">altura media</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Virtual List Panel -->
+                <div id="list-panel" class="trees-list-container">
+                    <div id="visible-trees-list" class="trees-list"></div>
+                </div>
+                
+                <!-- About Button Footer -->
+                <div class="sidebar-footer">
+                    <button id="about-btn" class="about-btn">
+                        <i data-lucide="info"></i> Proyecto
+                    </button>
                 </div>
             </div>
-            
-            <!-- Stats Panel -->
-            <div id="stats-panel" class="stats-panel">
-                <div class="stat-box">
-                    <span class="stat-value" id="stat-total">0</span>
-                    <span class="stat-label">Árboles Visibles</span>
-                </div>
-            </div>
-
-            <!-- Virtual List Panel -->
-            <div id="list-panel" class="trees-list-container">
-                <div id="visible-trees-list" class="trees-list"></div>
-            </div>
-            
-            <div class="loader hidden" id="loader">
-                <div class="spinner"></div>
-                <p id="loader-text">Cargando datos...</p>
-            </div>
-
-            <!-- About Button Footer -->
-            <div class="sidebar-footer">
-                <button id="about-btn" class="about-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                    Acerca de la aplicación
-                </button>
-            </div>
-        </div>
-        </div>
+        </aside>
 
         <!-- Map Container -->
         <main id="map-container">
             <div id="map"></div>
         </main>
-    </div>
+        
+        <!-- Floating Action Bar (FAB) -->
+        <div class="fab-container glass">
+            <button id="fab-home" class="fab-btn" title="Vista inicial">
+                <i data-lucide="home"></i>
+            </button>
+            <div class="fab-divider"></div>
+            <button id="fab-layers" class="fab-btn" title="Cambiar a satélite">
+                <i data-lucide="layers"></i>
+            </button>
+            <div class="fab-divider"></div>
+            <button id="fab-gps" class="fab-btn" title="Mi ubicación">
+                <i data-lucide="navigation"></i>
+            </button>
+        </div>
 
-    <!-- About Modal -->
-    <div id="about-modal" class="modal-overlay hidden">
-        <div class="modal-content glass">
-            <button id="close-modal-btn" class="close-modal-btn" title="Cerrar">&times;</button>
-            <h2>Sobre este proyecto</h2>
-            <div class="modal-body">
-                <p><strong>Desarrollado por:</strong> Guillermo Arjona Ramos<br>
-                Contacto: <a href="mailto:garjonar@gmail.com">garjonar@gmail.com</a></p>
+        <!-- Bottom Sheet (Tree Details Card) -->
+        <div id="tree-bottom-sheet" class="bottom-sheet glass hidden">
+            <div class="sheet-handle"></div>
+            <button id="close-sheet-btn" class="close-sheet-btn"><i data-lucide="x"></i></button>
+            <div class="sheet-content">
+                <h2 id="sheet-title">Nombre del Árbol</h2>
+                <p id="sheet-subtitle" class="text-muted">Familia / Especie</p>
                 
-                <h3>Fuentes de Datos</h3>
-                <p>Esta aplicación es un proyecto independiente construido utilizando información de uso público (Open Data):</p>
-                <ul>
-                    <li><a href="https://www.sevilla.org/servicios/medio-ambiente-parques-jardines/inventario-de-arbolado-de-sevilla" target="_blank" rel="noopener noreferrer">Inventario de arbolado del Ayuntamiento de Sevilla</a></li>
-                    <li><a href="http://sig.urbanismosevilla.org/InicioIDE.aspx" target="_blank" rel="noopener noreferrer">Infraestructura de Datos Espaciales (Urbanismo)</a></li>
-                </ul>
-                
-                <div class="legal-disclaimer">
-                    <p><em><strong>Aviso:</strong> Esta aplicación no es oficial ni tiene vinculación directa con el Ayuntamiento de Sevilla. Los datos se muestran con fines informativos y divulgativos en el marco de la reutilización de información del sector público.</em></p>
+                <div class="sheet-badges" id="sheet-badges">
+                    <!-- Badges injected by JS -->
+                </div>
+
+                <div class="sheet-grid">
+                    <div class="sheet-detail">
+                        <i data-lucide="map-pin"></i>
+                        <span id="sheet-location">Distrito, Barrio</span>
+                    </div>
+                    <div class="sheet-detail">
+                        <i data-lucide="ruler"></i>
+                        <span id="sheet-height">18 m</span>
+                    </div>
+                    <div class="sheet-detail">
+                        <i data-lucide="activity"></i>
+                        <span id="sheet-status">Excelente</span>
+                    </div>
+                    <div class="sheet-detail hidden" id="sheet-threat-container">
+                        <i data-lucide="alert-triangle"></i>
+                        <span id="sheet-threat" style="color: #EF4444;">Vulnerable</span>
+                    </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Loaders and Modals -->
+        <div class="loader hidden" id="loader">
+            <div class="spinner"></div>
+            <p id="loader-text">Cargando la ciudad...</p>
+        </div>
+
+        <div id="about-modal" class="modal-overlay hidden">
+            <div class="modal-content glass">
+                <button id="close-modal-btn" class="close-modal-btn"><i data-lucide="x"></i></button>
+                <h2>Sobre este proyecto</h2>
+                <div class="modal-body">
+                    <p><strong>Desarrollado por:</strong> Guillermo Arjona Ramos<br>
+                    Contacto: <a href="mailto:garjonar@gmail.com">garjonar@gmail.com</a></p>
+                    <p>Esta aplicación es un proyecto independiente construido utilizando información de uso público (Open Data).</p>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    
-    <!-- Leaflet MarkerCluster JS -->
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-
-    <!-- Custom JS -->
-    <script src="app.js?v=11"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="app.js?v=20"></script>
+    <script>
+        lucide.createIcons(); // Initialize Lucide Icons
+    </script>
 </body>
 </html>
